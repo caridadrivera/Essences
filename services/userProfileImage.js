@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 
 export const getUserImage = imagePath =>{
     if(imagePath){
-        return getSupabaseFileUrl(imagePath)
+        return getSupabaseFileUrl(imagePath);
     } else {
         return  require('../assets/images/download.jpeg')
     }
@@ -14,6 +14,7 @@ export const getUserImage = imagePath =>{
 
 export const getSupabaseFileUrl = filePath =>{
     const supabaseUrl = 'https://fxogjvujmqcpjdhyiawl.supabase.co'
+
     if(filePath){
         return {uri: `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`}
     }

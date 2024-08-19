@@ -28,6 +28,7 @@ const Home = ({posts}) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [loading, setLoading] = useState(false)
   
 
   useEffect(() => {
@@ -36,7 +37,7 @@ const Home = ({posts}) => {
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [user]);
 
 
   const fetchTopics = async () => {
@@ -70,8 +71,7 @@ const Home = ({posts}) => {
           name
         )
       `)
-      .eq('topicId', topic.id);
-
+      .eq('topicId', topic.id)
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
       return [];

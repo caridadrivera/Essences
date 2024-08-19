@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, Pressable, Alert } from 'react-native'
+import { StyleSheet, Text, View, Pressable, Alert, ScrollView } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import Avatar from '../../components/Avatar'
@@ -14,9 +14,10 @@ import Input from '../../components/Input'
 import ButtonComponent from '../../components/Button'
 import { updateUserData } from '../../services/userService'
 import * as imagePicker from 'expo-image-picker'
+import { Image } from 'expo-image'
 
-const EditProfile = () => {
-    const { user: currentUser, setUserData} = useAuth()
+const EditProfile = () => { 
+    const { user: currentUser, setUserData } = useAuth()
     const [user, setUser] = useState({
         name: '',
         profile_image: null,
@@ -42,32 +43,27 @@ const EditProfile = () => {
         let result = await imagePicker.launchImageLibraryAsync({
             mediaTypes: imagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4,3],
+            aspect: [4, 3],
             quality: 0.7
         })
 
-        if(!result.canceled){
-            setUser({...user, profile_image: result.assets[0]})
+        if (!result.canceled) {
+            setUser({ ...user, profile_image: result.assets[0] })
         }
     }
-    let profileImgSrc = user.profile_image && typeof user.profile_image == 'object'? user.profile_image.uri : getUserImage(user.profile_image)
   
     const pickBackgroundImage = async () => {
         let result = await imagePicker.launchImageLibraryAsync({
             mediaTypes: imagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4,3],
+            aspect: [4, 3],
             quality: 0.7
         })
 
-        if(!result.canceled){
-            setUser({...user, background_image: result.assets[0]})
+        if (!result.canceled) {
+          setUser({ ...user, background_image: result.assets[0] })
         }
     }
-
-    let backgroundImgSrc = user.background_image && typeof user.background_image  == 'object'? user.background_image.uri : getUserImage(user.background_image)
-
-
 
     const onSubmit = async () => {
         let userData = { ...user }
@@ -79,60 +75,57 @@ const EditProfile = () => {
         setLoading(true)
 
         //update user
-
-        if(typeof profile_image == 'object'){
+        if (typeof profile_image == 'object') {
             let imageRes = await uploadFile('profiles', profile_image?.uri, true)
-            if(imageRes.success) userData.profile_image = imageRes.data
+            if (imageRes.success) userData.profile_image = imageRes.data
             else userData.profile_image = null
         }
 
-        if(typeof background_image == 'object'){
+        if (typeof background_image == 'object') {
             let imageRes = await uploadFile('backgrounds', background_image?.uri, true)
-            if(imageRes.success) userData.background_image = imageRes.data
+            if (imageRes.success) userData.background_image = imageRes.data
             else userData.background_image = null
         }
-
-
 
         const res = await updateUserData(currentUser?.id, userData)
         setLoading(false)
 
-        if(res.success){
-            setUserData({...currentUser, ...userData})
+        if (res.success) {
+            setUserData({ ...currentUser, ...userData })
             router.back()
         }
     }
 
+    let backgroundImgSrc = user.background_image && typeof user.background_image == 'object' ? user.background_image.uri : getUserImage(user.background_image)
+    let profileImgSrc = user.profile_image && typeof user.profile_image == 'object' ? user.profile_image.uri : getUserImage(user.profile_image)
 
 
     return (
         <ScreenWrapper>
             <View style={styles.backgroundImgContainer}>
-                <View>
-                <Pressable  onPress={pickBackgroundImage}>
-                   <Text  style={styles.editBackground}>Edit</Text>
-                </Pressable> 
+            <Pressable onPress={pickBackgroundImage}>
+                        <Text style={styles.editBackground}>Edit</Text>
+                    </Pressable>
+                <ScrollView>
+                   
                     <Image
                         source={backgroundImgSrc}
                         resizeMode='cover'
                         style={{
                             height: 228,
                             width: "100%"
-                        }} /> 
-                </View>
+                        }} />
+                </ScrollView>
                 <BackButton router={router} />
             </View>
-
-            
             <View style={styles.profilePicContainer}>
                 <Image
                     source={profileImgSrc}
                     style={styles.profilePic} />
                 <Pressable style={styles.editIcon} onPress={pickProfileImage}>
                     <Icon name="uploadImageIcon" strokeWidth={2.5} size={20} />
-                </Pressable>  
+                </Pressable>
             </View>
-            
 
             {/* form */}
             <View style={styles.form}>
@@ -193,7 +186,7 @@ const styles = StyleSheet.create({
         marginTop: -140
     },
     editIcon: {
-     
+
         botton: 0,
         padding: 7,
         borderRadius: 50,

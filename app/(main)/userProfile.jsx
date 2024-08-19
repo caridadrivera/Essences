@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, StatusBar, Image, Modal, TouchableOpacity, Pressable } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
@@ -14,6 +14,8 @@ import AddButton from '../../components/AddButton'
 import Icon from '../../assets/icons'
 import PostModal from './postModal'
 import { useNavigation } from '@react-navigation/native';
+import { Image } from 'expo-image'
+import { getUserImage } from '../../services/userProfileImage'
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
@@ -22,14 +24,16 @@ const userProfile = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const navigation = useNavigation()
-  
+  const [bgImage, setbgImage] = useState(null)
+
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
       setLoading(false);
     };
-
     fetchData();
+
+    setbgImage(getUserImage(user.background_image))
   }, []);
 
 
@@ -90,8 +94,7 @@ const userProfile = () => {
         <StatusBar style={styles.statusBar} />
         <View style={styles.backgroundImgContainer}>
           <Image
-            source={bgImg}
-            resizeMode='cover'
+            source={bgImage}
             style={{
               height: 228,
               width: "100%"
@@ -113,9 +116,7 @@ const userProfile = () => {
                 <AddButton />
               </View>
               <ScrollView horizontal={true}>
-
                 {(postsByTopic[topic.id] || []).map(filteredPost => (
-
                   <TouchableOpacity key={filteredPost.id} onPress={() => {
                     setSelectedPost(filteredPost);
                     setModalVisible(true);
