@@ -20,6 +20,7 @@ import Icon from '../../assets/icons'
 import Avatar from '../../components/Avatar'
 import PostModal from './postModal'
 
+
 const Home = ({posts}) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
@@ -98,7 +99,13 @@ const Home = ({posts}) => {
      <ScreenWrapper> 
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Essences</Text>       
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Essences</Text>  
+            <Pressable onPress={()=>{router.push('editProfile') } }>
+              <Icon name="settingsIcon"/>
+            </Pressable>  
+          </View>
+            
           <View style={styles.icons}>
             <Pressable onPress={()=>{router.push('userProfile') } } style={styles.buttonStyle} >
               <Avatar
@@ -180,10 +187,18 @@ const styles = StyleSheet.create({
     marginBottom: 10, 
     marginHorizontal: wp(4)
   },
+  headerText:{
+    flexDirection: 'row',
+    alignItems: 'center', 
+    padding: 10 
+  }
+  ,
   title: {
   color: theme.colors.text,
   fontSize: hp(3.2),
-  fontWeight: theme.fonts.bold
+  fontWeight: theme.fonts.bold,
+  marginBottom: 10,
+  marginRight: 10
   },
   uploadIcon: {
     position: 'absolute',

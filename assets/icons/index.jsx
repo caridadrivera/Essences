@@ -15,6 +15,7 @@ import MailIcon from './Mail'
 import SquareLockIcon from './Lock'
 import HexagonIcon from './Hexagon'
 import UploadImageIcon from './uploadImageIcon'
+import UserSettingsIcon from './Settings'
 const icons = {
     home: HomeIcon, 
     arrowLeft: ArrowLeft,
@@ -29,7 +30,8 @@ const icons = {
     mailIcon: MailIcon,
     lockIcon: SquareLockIcon,
     hexagonIcon: HexagonIcon,
-    uploadImageIcon: UploadImageIcon
+    uploadImageIcon: UploadImageIcon,
+    settingsIcon: UserSettingsIcon
 }
 const Icon = ({name, ...props}) => {
     const IconComponent = icons[name]

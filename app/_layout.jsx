@@ -17,7 +17,7 @@ const _layout = () =>{
 
 const MainLayout = () => {
 
-  const {setAuth} = useAuth();
+  const {setAuth, setUserData} = useAuth();
   const router = useRouter()
 
   useEffect(()=>{
@@ -36,7 +36,7 @@ const MainLayout = () => {
 
   const updateUserData = async (user, email) =>{
     let response = await getUserData(user?.id)
-    if(response.success) setUserData({...response.data, email})
+    if(response.success) setUserData(response.data)
   }
 
   return (

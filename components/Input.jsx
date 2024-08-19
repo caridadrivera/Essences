@@ -5,7 +5,7 @@ import { hp, wp } from '../helpers/common'
 
 const Input = (props) => {
   return (
-    <View style={[styles.container, props.containerStyles && props.containerStyles]}>
+    <View style={[styles.container, props.containerStyle && props.containerStyle]}>
       {props.icon && props.icon}
       <TextInput 
         style={{flex: 1}}
