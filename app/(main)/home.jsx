@@ -19,9 +19,10 @@ import AddButton from '../../components/AddButton'
 import Icon from '../../assets/icons'
 import Avatar from '../../components/Avatar'
 import PostModal from './postModal'
+import { getUserImage } from '../../services/userProfileImage'
+import { useNavigation } from 'expo-router'
 
-
-const Home = ({posts}) => {
+const Home = ({filteredPost}) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const {user, setAuth} = useAuth();
@@ -29,7 +30,7 @@ const Home = ({posts}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(false)
-  
+  const navigation = useNavigation()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +69,9 @@ const Home = ({posts}) => {
       .select(`
         *,
         users (
-          name
+          name,
+          profile_image,
+          id
         )
       `)
       .eq('topicId', topic.id)
@@ -76,7 +79,7 @@ const Home = ({posts}) => {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
       return [];
     }
-
+ 
     return data;
   };
 
@@ -86,13 +89,6 @@ const Home = ({posts}) => {
 };
 
 
-  const leftComponent = ({ size }) => (
-    //on click of left image, push to User profile sending filteredPost.userId to get images and posts for that specific user
-    <Avatar 
-    uri={user?.profile_image} 
-    style={{ width: size, height: size, borderRadius: size / 2 }}/>
-  
-  );
 
   return (
  
@@ -118,28 +114,29 @@ const Home = ({posts}) => {
             <LogOutButton/>
           </View>    
         </View>
-        {/* user profile component will be used in two ways: 
-          when clicking userProfile icon under the profile pic,
-         I take the userId of the logged in user. if click on image on card (leftComponent),
-          grab post.userId 
-         and get that users obj to display userprofile)*/}
         <ScrollView  style={styles.postsContainer}>
           {topics.map(topic => (
             <View key={topic.id}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold'}}>{topic.title}</Text>
-                <AddButton/>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ marginLeft: 10, fontSize: 18, fontWeight: 'bold'}}>{topic.title}</Text>
               </View>
               <ScrollView horizontal={true}>
-                {(postsByTopic[topic.id] || []).map(filteredPost => (   
-                  <TouchableOpacity key={filteredPost.id} onPress={() => openModal(filteredPost)}>   
-                    <Card style={{ margin: 20, width: 300, height: 200}} key={filteredPost.id}>
+                {(postsByTopic[topic.id] || []).map(filteredPost => (               
+                  <Card style={{ margin: 20, width: 300, height: 200}} key={filteredPost.id}>
                       <Card.Title
                         subtitle={filteredPost.users.name}
                         titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
                         subtitleStyle={{ fontSize: 14 }}
-                        left={leftComponent}
+                        left={() => (
+                          <Pressable onPress={() => router.push({
+                            pathname: '/users/[id]', 
+                            params: { id: filteredPost.users.id }}
+                            )}>
+                            <Avatar uri={filteredPost.users.profile_image}/>
+                          </Pressable>
+                        )}
                       />
+                    <TouchableOpacity key={filteredPost.id} onPress={() => openModal(filteredPost)}>   
                       <Card.Content
                         style={{
                           margin: 10,
@@ -152,8 +149,8 @@ const Home = ({posts}) => {
                           numberOfLines={3} 
                           ellipsizeMode="tail" >{filteredPost.body}</Text>
                       </Card.Content>
-                    </Card>
-                </TouchableOpacity>
+                    </TouchableOpacity> 
+                  </Card>          
                 ))}
               </ScrollView>
             </View>

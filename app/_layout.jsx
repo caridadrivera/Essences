@@ -6,7 +6,6 @@ import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getUserData } from '../services/userService'
 
-
 const _layout = () =>{
   return (
       <AuthProvider>
@@ -39,10 +38,12 @@ const MainLayout = () => {
     if(response.success) setUserData(response.data)
   }
 
+
   return (
     <Stack
       screenOptions={{headerShown: false}}/>
   )
+
 }
 
 export default _layout

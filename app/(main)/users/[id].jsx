@@ -1,25 +1,23 @@
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
-import { theme } from '../../constants/theme'
-import bgImg from '../../assets/images/bg.jpeg'
-import Topics from './topics'
-import { supabase } from '../../lib/supabase'
-import Avatar from '../../components/Avatar'
-import BackButton from '../../components/BackButton'
-import { router } from 'expo-router'
-import { ScrollView } from 'react-native'
-import { useAuth } from '../../context/AuthContext'
-import AddButton from '../../components/AddButton'
-import Icon from '../../assets/icons'
-import PostModal from './postModal'
-import { useNavigation } from '@react-navigation/native';
-import { Image } from 'expo-image'
-import { getUserImage } from '../../services/userProfileImage'
-import NewPost from './newPost'
-import { useRouter } from 'expo-router';
+import { theme } from '../../../constants/theme'
+import { supabase } from '../../../lib/supabase'
+import Avatar from '../../../components/Avatar'
+import BackButton from '../../../components/BackButton'
 
-const userProfile = () => {
+import { ScrollView } from 'react-native'
+import { useAuth } from '../../../context/AuthContext'
+import AddButton from '../../../components/AddButton'
+import PostModal from '../postModal'
+import { Image } from 'expo-image'
+import { getUserImage } from '../../../services/userProfileImage'
+import NewPost from '../newPost'
+
+import { useRouter, useLocalSearchParams} from 'expo-router';
+import Icon from '../../../assets/icons'
+
+const Profile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const { user, setAuth } = useAuth()
@@ -30,14 +28,14 @@ const userProfile = () => {
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null)
 
+  const router = useRouter()
+  const {id} = useLocalSearchParams()
+ 
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
     };
     fetchData();
-
-    console.log(router.params)
-
     setbgImage(getUserImage(user.background_image))
   }, []);
 
@@ -54,7 +52,7 @@ const userProfile = () => {
         )
       `)
       .eq('topicId', topic.id)
-      .eq('userId', user.id)
+      .eq('userId', id)
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -119,10 +117,15 @@ const userProfile = () => {
             <View key={topic.id} style={styles.postsContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold' }}>{topic.title}</Text>
-                <AddButton onPress={() => {
+                <TouchableOpacity key={topic.id} onPress={() => {
                     setSelectedTopic(topic.id);
                     setPostModalVisible(true);
-                  }}/>
+                  }}>
+                    <View>
+                      <Icon name='plusIcon'/>
+                    </View>
+                     
+                  </TouchableOpacity>
               </View>
               <ScrollView horizontal={true}>
                 {(postsByTopic[topic.id] || []).map(filteredPost => (
@@ -146,7 +149,7 @@ const userProfile = () => {
                         }}>
                         <Text
                           style={{ fontSize: 14 }}
-                          numberOfLines={3} // Limits the number of lines
+                          numberOfLines={3} 
                           ellipsizeMode="tail">{filteredPost.body}</Text>
                       </Card.Content>
                     </Card>
@@ -162,13 +165,19 @@ const userProfile = () => {
           onClose={() => setModalVisible(false)}
         />
 
+        <NewPost
+          isVisible={postModalVisible}
+          user={user}
+          topicId = {selectedTopic}
+          onClose={() => setPostModalVisible(false)}
+        />
 
       </SafeAreaView>
     </PaperProvider>
   )
 }
 
-export default userProfile
+export default Profile
 
 
 const styles = StyleSheet.create({
