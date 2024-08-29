@@ -1,8 +1,9 @@
 // PostModal.js
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PaperProvider , Card} from 'react-native-paper'
-
+import { PaperProvider, Card } from 'react-native-paper'
+import RenderHTML from 'react-native-render-html';
+import { wp } from '../../helpers/common';
 const PostModal = ({ isVisible, post, onClose }) => {
     if (!post) return null; // Render nothing if no post is provided
 
@@ -16,10 +17,13 @@ const PostModal = ({ isVisible, post, onClose }) => {
             <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                     <Card>
-                       <Card.Content style={styles.cardContentStyle}>
-                            <Text style={{ fontSize: 14 }}>
-                                {post.body}
-                            </Text>
+                        <Card.Content style={styles.cardContentStyle}>
+                            {post?.body && (
+                                <RenderHTML
+                                    contentWidth={wp(100)}
+                                    source={{ html: post?.body }}
+                                />
+                            )}
                         </Card.Content>
                     </Card>
                     <TouchableOpacity
@@ -62,6 +66,7 @@ const styles = StyleSheet.create({
         padding: 10
     },
     button: {
+        marginTop: 18,
         borderRadius: 20,
         padding: 10,
         elevation: 2

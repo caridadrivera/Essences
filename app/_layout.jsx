@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, LogBox } from 'react-native'
 import React, { useEffect , useState} from 'react'
 import { Stack, useRouter } from 'expo-router'
 import { AuthProvider, useAuth, setUserData } from '../context/AuthContext'
@@ -6,6 +6,7 @@ import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getUserData } from '../services/userService'
 
+LogBox.ignoreLogs(['Warning: TNodeChildrenRenderer', 'Warning: MemoizedTNodeRenderer', 'Warning: TRenderEngineProvider'])
 const _layout = () =>{
   return (
       <AuthProvider>

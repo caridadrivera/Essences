@@ -16,6 +16,8 @@ import SquareLockIcon from './Lock'
 import HexagonIcon from './Hexagon'
 import UploadImageIcon from './uploadImageIcon'
 import UserSettingsIcon from './Settings'
+import MoreHorizontalIcon from './MoreHorizontalIcon'
+
 const icons = {
     home: HomeIcon, 
     arrowLeft: ArrowLeft,
@@ -31,7 +33,8 @@ const icons = {
     lockIcon: SquareLockIcon,
     hexagonIcon: HexagonIcon,
     uploadImageIcon: UploadImageIcon,
-    settingsIcon: UserSettingsIcon
+    settingsIcon: UserSettingsIcon,
+    moreIcon: MoreHorizontalIcon
 }
 const Icon = ({name, ...props}) => {
     const IconComponent = icons[name]

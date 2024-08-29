@@ -2,8 +2,6 @@ import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacit
 import React, { useState, useEffect } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
-import bgImg from '../../assets/images/bg.jpeg'
-import Topics from './topics'
 import { supabase } from '../../lib/supabase'
 import Avatar from '../../components/Avatar'
 import BackButton from '../../components/BackButton'
@@ -13,11 +11,15 @@ import { useAuth } from '../../context/AuthContext'
 import AddButton from '../../components/AddButton'
 import Icon from '../../assets/icons'
 import PostModal from './postModal'
-import { useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image'
 import { getUserImage } from '../../services/userProfileImage'
 import NewPost from './newPost'
-import { useRouter } from 'expo-router';
+import RenderHTML from 'react-native-render-html'
+import { wp } from '../../helpers/common'
+import ScreenWrapper from '../../components/ScreenWrapper'
+import PostCard from './postCard'
+import Loading from '../../components/Loading'
+import { getUserData } from '../../services/userService'
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
@@ -30,15 +32,39 @@ const userProfile = () => {
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null)
 
+  const handlePostEvent = async (payload) => {
+    if (payload.eventType === 'INSERT' && payload?.new?.id) {
+      let newPost = { ...payload.new };
+      let response = await getUserData(newPost.userId);
+      newPost.user = response.success ? response.data : {};
+
+      const topicId = newPost.topicId;
+  
+      setPostsByTopic((prevPosts) => ({
+        ...prevPosts,
+        [topicId]: [newPost, ...(prevPosts[topicId] || [])],
+      }));
+    }
+  };
+  
+
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
     };
+ 
     fetchData();
-
-    console.log(router.params)
-
     setbgImage(getUserImage(user.background_image))
+
+    let postChannel = supabase
+    .channel('posts')
+    .on('postgres_changes', {event: '*', schema: 'public', table: 'posts'}, handlePostEvent)
+    .subscribe()
+
+
+    return ()=>{
+      supabase.removeChannel(postChannel)
+    }
   }, []);
 
 
@@ -86,85 +112,77 @@ const userProfile = () => {
   };
 
 
-  const leftComponent = ({ size }) => (
-    <Avatar
-      uri={user?.profile_image}
-      style={{ width: size, height: size, borderRadius: size / 2 }} />
-  );
-
 
 
   return (
-    <PaperProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar style={styles.statusBar} />
-        <View style={styles.backgroundImgContainer}>
-          <Image
-            source={bgImage}
-            style={{
-              height: 228,
-              width: "100%"
-            }} />
-          <BackButton router={router} />
-
-        </View>
-        <View style={styles.profilePicContainer}>
-          <Avatar
-            uri={user?.profile_image}
-            style={styles.profilePic} />     
-        </View>
-
-        <ScrollView>
-          {topics.map(topic => (
-            <View key={topic.id} style={styles.postsContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold' }}>{topic.title}</Text>
-                <AddButton onPress={() => {
-                    setSelectedTopic(topic.id);
-                    setPostModalVisible(true);
-                  }}/>
-              </View>
-              <ScrollView horizontal={true}>
-                {(postsByTopic[topic.id] || []).map(filteredPost => (
-                  <TouchableOpacity key={filteredPost.id} onPress={() => {
-                    setSelectedPost(filteredPost);
-                    setModalVisible(true);
-                  }}>
-                    <Card style={{ margin: 20, width: 300, height: 200 }} key={filteredPost.id}>
-                      <Card.Title
-                        subtitle={filteredPost.users.name}
-                        titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
-                        subtitleStyle={{ fontSize: 14 }}
-                        left={leftComponent}
-                      />
-                      <Card.Content
-                        style={{
-                          margin: 10,
-                          padding: 10,
-                          backgroundColor: 'lightgrey',
-                          borderRadius: 10,
-                        }}>
-                        <Text
-                          style={{ fontSize: 14 }}
-                          numberOfLines={3} // Limits the number of lines
-                          ellipsizeMode="tail">{filteredPost.body}</Text>
-                      </Card.Content>
-                    </Card>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+    <ScreenWrapper >
+      <StatusBar style={styles.statusBar} />
+      <View style={styles.backgroundImgContainer}>
+        <Image
+          source={bgImage}
+          style={{
+            height: 228,
+            width: "100%"
+          }} />
+        <BackButton router={router} />
+      </View>
+      <View style={styles.profilePicContainer}>
+        <Avatar
+          uri={user?.profile_image}
+          style={styles.profilePic} />
+      </View>
+      
+      <ScrollView>
+        {topics.map(topic => (
+          <View key={topic.id} >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold' }}>{topic.title}</Text>
+              <TouchableOpacity key={topic.id} onPress={() => {
+                setSelectedTopic(topic.id);
+                setPostModalVisible(true);
+              }}>
+                <View>
+                  <Icon name='plusIcon' />
+                </View>
+              </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
-        <PostModal
-          isVisible={modalVisible}
-          post={selectedPost}
-          onClose={() => setModalVisible(false)}
-        />
+            <ScrollView horizontal={true} >
+              {(postsByTopic[topic.id] || []).map(filteredPost => (
+                <TouchableOpacity key={filteredPost.id} onPress={() => {
+                  setSelectedPost(filteredPost);
+                  setModalVisible(true);
+                }}>
+                  <PostCard
+                    user={user}
+                    item={filteredPost}
+                    router={router}/>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ))}
+        <View style={{marginVertical: 30}}>
+          <Loading/>
+        </View>
+  </ScrollView>
+
+      <PostModal
+        isVisible={modalVisible}
+        post={selectedPost}
+        onClose={() => setModalVisible(false)}
+      />
+
+      <NewPost
+        isVisible={postModalVisible}
+        user={user}
+        topicId={selectedTopic}
+        onClose={() => setPostModalVisible(false)}
+      />
+
+    </ScreenWrapper>
 
 
-      </SafeAreaView>
-    </PaperProvider>
+
   )
 }
 

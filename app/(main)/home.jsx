@@ -1,36 +1,28 @@
-import { StatusBar, StyleSheet, Text, View, Image, SafeAreaView, ScrollView, Pressable, TouchableOpacity} from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import ButtonComponent from '../../components/Button'
-import { Alert } from 'react-native'
 import { theme } from '../../constants/theme'
-import profilePic from '../../assets/images/download.jpeg'
-import bgImg from '../../assets/images/bg.jpeg'
-import Topics from './topics'
-import { PaperProvider, Card } from 'react-native-paper'
+import { Card } from 'react-native-paper'
 import LogOutButton from '../../components/LogOutButton'
-import UserProfileButton from '../../components/UserProfileButton'
 import LikeButton from '../../components/likeButton'
 import { router } from 'expo-router'
 import { hp, wp } from '../../helpers/common'
-import AddButton from '../../components/AddButton'
 import Icon from '../../assets/icons'
 import Avatar from '../../components/Avatar'
 import PostModal from './postModal'
-import { getUserImage } from '../../services/userProfileImage'
-import { useNavigation } from 'expo-router'
+import RenderHTML from 'react-native-render-html'
+import Loading from '../../components/Loading'
 
-const Home = ({filteredPost}) => {
+const Home = ({ filteredPost }) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
-  const {user, setAuth} = useAuth();
+  const { user, setAuth } = useAuth();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(false)
-  const navigation = useNavigation()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,11 +43,11 @@ const Home = ({filteredPost}) => {
       return;
     }
 
-    setTopics(data); 
+    setTopics(data);
 
     const postsByTopic = {};
     for (const topic of data) {
-      const topicPosts = await fetchPosts(topic);
+      const topicPosts = await fetchPosts(topic, user);
       postsByTopic[topic.id] = topicPosts;
     }
 
@@ -63,7 +55,7 @@ const Home = ({filteredPost}) => {
   };
 
 
-  const fetchPosts = async (topic) => {
+  const fetchPosts = async (topic, user) => {
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -71,101 +63,140 @@ const Home = ({filteredPost}) => {
         users (
           name,
           profile_image,
+          background_image,
           id
         )
       `)
       .eq('topicId', topic.id)
+      .not('userId', 'eq', user.id);
+
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
       return [];
     }
- 
+
     return data;
   };
 
-  const openModal = (post) => {
-    setSelectedPost(post);
-    setModalVisible(true);
-};
-
-
 
   return (
- 
-     <ScreenWrapper> 
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Essences</Text>  
-            <Pressable onPress={()=>{router.push('editProfile') } }>
-              <Icon name="settingsIcon"/>
-            </Pressable>  
-          </View>
-            
-          <View style={styles.icons}>
-            <Pressable onPress={()=>{router.push('userProfile') } } style={styles.buttonStyle} >
-              <Avatar
-                uri={user?.profile_image}
-                size={hp(4.3)}
-                rounded={theme.radius.sm}
-                style={{borderWidth: 2}}/>
-            </Pressable> 
-            <LikeButton/>
-            <LogOutButton/>
-          </View>    
-        </View>
-        <ScrollView  style={styles.postsContainer}>
-          {topics.map(topic => (
-            <View key={topic.id}>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ marginLeft: 10, fontSize: 18, fontWeight: 'bold'}}>{topic.title}</Text>
-              </View>
-              <ScrollView horizontal={true}>
-                {(postsByTopic[topic.id] || []).map(filteredPost => (               
-                  <Card style={{ margin: 20, width: 300, height: 200}} key={filteredPost.id}>
-                      <Card.Title
-                        subtitle={filteredPost.users.name}
-                        titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
-                        subtitleStyle={{ fontSize: 14 }}
-                        left={() => (
-                          <Pressable onPress={() => router.push({
-                            pathname: '/users/[id]', 
-                            params: { id: filteredPost.users.id }}
-                            )}>
-                            <Avatar uri={filteredPost.users.profile_image}/>
-                          </Pressable>
-                        )}
-                      />
-                    <TouchableOpacity key={filteredPost.id} onPress={() => openModal(filteredPost)}>   
-                      <Card.Content
-                        style={{
-                          margin: 10,
-                          padding: 10,
-                          backgroundColor: 'lightgrey',
-                          borderRadius: 10,
-                        }}>
-                        <Text 
-                          style={{ fontSize: 14 }}
-                          numberOfLines={3} 
-                          ellipsizeMode="tail" >{filteredPost.body}</Text>
-                      </Card.Content>
-                    </TouchableOpacity> 
-                  </Card>          
-                ))}
-              </ScrollView>
-            </View>
-          ))}
 
-          <PostModal
-                isVisible={modalVisible}
-                post={selectedPost}
-                onClose={() => setModalVisible(false)}
-            />
-        </ScrollView>
+    <ScreenWrapper>
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Essences</Text>
+          <Pressable onPress={() => { router.push('editProfile') }}>
+            <Icon name="settingsIcon" />
+          </Pressable>
+        </View>
+
+        <View style={styles.icons}>
+          <Pressable onPress={() => { router.push('userProfile') }} style={styles.buttonStyle} >
+            <Avatar
+              uri={user?.profile_image}
+              size={hp(4.3)}
+              rounded={theme.radius.sm}
+              style={{ borderWidth: 2 }} />
+          </Pressable>
+          <LikeButton />
+          <LogOutButton />
+        </View>
       </View>
+
+
+      <ScrollView>
+        {topics.map(topic => (
+          <View key={topic.id}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ marginLeft: 10, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+            </View>
+            <ScrollView horizontal={true}>
+              {(postsByTopic[topic.id] || []).map(filteredPost => (
+                <TouchableOpacity key={filteredPost.id} onPress={() => {
+                  setSelectedPost(filteredPost);
+                  setModalVisible(true);
+                }}>
+
+                  <Card style={{ margin: 20, width: 300, height: 200 }} key={filteredPost.id}>
+                    <Card.Title
+                      subtitle={filteredPost.users.name}
+                      titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
+                      subtitleStyle={{ fontSize: 14 }}
+                      left={() => (
+                        <Pressable onPress={() => router.push({
+                          pathname: '/users/[id]',
+                          params: { id: filteredPost.users.id, profile_img: filteredPost.users.profile_image, background_img: filteredPost.users.background_image }
+                        }
+                        )}>
+                          <Avatar uri={filteredPost.users.profile_image} />
+                        </Pressable>
+                      )}
+                      right={() => (
+                        <TouchableOpacity>
+                          <Icon name="moreIcon" style={{ margin: 18 }} />
+                        </TouchableOpacity>
+                      )}
+
+                    />
+                    <Card.Content
+                      style={{
+                        margin: 10,
+                        padding: 10,
+                        backgroundColor: 'lightgrey',
+                        borderRadius: 10,
+                      }}>
+
+                      <View
+                        style={{
+                          maxHeight: 50,
+                        }}
+                      >
+                        {filteredPost?.body && (
+                          
+                             <RenderHTML
+                            contentWidth={wp(100)}
+                            source={{ html: filteredPost?.body }}
+                            baseStyle={{
+                              fontSize: 14,
+                              lineHeight: 20, 
+                            }}
+                            style={{ maxHeight: hp(10) }} 
+                          />
+
+                         
+                         
+                        )}
+                      </View>
+
+
+                    </Card.Content>
+
+                    <Card.Actions style={styles.footer}>
+                      <TouchableOpacity>
+                        <Icon name="hexagonIcon" />
+                      </TouchableOpacity>
+
+                    </Card.Actions>
+                  </Card>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ))}
+        <View style={{marginVertical: 30}}>
+          <Loading/>
+        </View>
+      </ScrollView>
+
+
+      <PostModal
+        isVisible={modalVisible}
+        post={selectedPost}
+        onClose={() => setModalVisible(false)}
+      />
     </ScreenWrapper>
 
-   
+
   )
 }
 
@@ -174,28 +205,28 @@ export default Home
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white', 
+    backgroundColor: 'white',
     paddingLeft: '10px'
   },
   header: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10, 
+    marginBottom: 10,
     marginHorizontal: wp(4)
   },
-  headerText:{
+  headerText: {
     flexDirection: 'row',
-    alignItems: 'center', 
-    padding: 10 
+    alignItems: 'center',
+    padding: 10
   }
   ,
   title: {
-  color: theme.colors.text,
-  fontSize: hp(3.2),
-  fontWeight: theme.fonts.bold,
-  marginBottom: 10,
-  marginRight: 10
+    color: theme.colors.text,
+    fontSize: hp(3.2),
+    fontWeight: theme.fonts.bold,
+    marginBottom: 10,
+    marginRight: 10
   },
   uploadIcon: {
     position: 'absolute',
@@ -205,7 +236,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: 'white',
     shadowColor: theme.colors.textLight,
-    shadowOffset: {width: 0, height: 5},
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 7
@@ -215,7 +246,7 @@ const styles = StyleSheet.create({
     width: hp(4.3),
     borderRadius: theme.radius.sm,
     borderCurve: 'continuous',
-    borderColor: theme.colors.gray, 
+    borderColor: theme.colors.gray,
     borderWidth: 3
   },
   icons: {
@@ -225,7 +256,7 @@ const styles = StyleSheet.create({
     gap: 18
   },
   listStyle: {
-    paddingTop: 20, 
+    paddingTop: 20,
     paddingHorizontal: wp(4)
   },
   noPosts: {
@@ -235,8 +266,8 @@ const styles = StyleSheet.create({
   },
   usersButton: {
     alignSelf: 'center',
-    flexDirection: 'row', 
-    justifyContent: 'space-evenly', 
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
   },
   buttonStyle: {
@@ -244,7 +275,11 @@ const styles = StyleSheet.create({
   },
   postsContainer: {
     paddingTop: 28
+  },
+  footer: {
+
   }
-  
+
+
 
 })

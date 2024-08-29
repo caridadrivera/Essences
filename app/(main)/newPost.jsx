@@ -1,10 +1,47 @@
 import { StyleSheet, Text, View , Modal, TouchableOpacity} from 'react-native'
-import React from 'react'
+import React,{useState, useRef} from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import Input from '../../components/Input'
 import Icon from '../../assets/icons'
+import { useRouter } from 'expo-router'
+import RichTextEditor from '../../components/RichTextEditor'
+import { theme } from '../../constants/theme'
+import { Alert } from 'react-native'
+import { supabase } from '../../lib/supabase'
+import { createOrUpdatePost } from '../../services/postService'
 
 const NewPost = ({ isVisible, user, topicId, onClose }) => {
+
+  const bodyRef = useRef("")
+  const editorRef = useRef("")
+  const router = useRouter()
+  const [loading, setLoading]  = useState(false)
+
+  const onSubmit = async () =>{
+    if(!bodyRef.current ){
+      Alert.alert("Post", "Your post is empty :(")
+    }
+    const data = {
+      body: bodyRef.current,
+      userId: user?.id,
+      topicId: topicId,
+    }
+
+    setLoading(true)
+    let response = await createOrUpdatePost(data)
+    setLoading(false)
+
+    if(response.success){
+      bodyRef.current = ''
+      editorRef.current?.setContentHTML('')
+      onClose()
+    }else {
+      Alert.alert('Post', response.msg)
+    }
+
+  }
+
+
   return (
     <Modal
         animationType="slide"
@@ -13,18 +50,24 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
         onRequestClose={onClose}>
            <View style={styles.centeredView}>
             <View style={styles.modalView}>
-               <Input
-                    icon={<Icon name="userIcon" />}
-                    placeholder='Tell us..'
-                    value={user.name}
-                    // onChangeText={value => setUser({ ...user, name: value })} 
-                    />
-              <TouchableOpacity
-                  style={[styles.button, styles.buttonClose]}
-                   onPress={onClose}
-                    >
-                <Text style={styles.textStyle}>Close</Text>
-              </TouchableOpacity>
+               <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body}/>
+              <View style={styles.media}>
+                <TouchableOpacity
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={onClose}
+                      >
+                  <Text style={styles.textStyle}>Close</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={onSubmit}
+                      >
+                  <Text style={styles.textStyle}>Post</Text>
+                </TouchableOpacity>
+
+              </View>
+              
             </View>
           </View>
             
@@ -71,6 +114,11 @@ const styles = StyleSheet.create({
       color: "white",
       fontWeight: "bold",
       textAlign: "center"
+  },
+  media: {
+    flexDirection: 'row',
+    columnGap: 4,
+    marginTop: 8
   }
 });
 
