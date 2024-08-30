@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, Dimensions } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { supabase } from '../../lib/supabase'
@@ -14,6 +14,7 @@ import Avatar from '../../components/Avatar'
 import PostModal from './postModal'
 import RenderHTML from 'react-native-render-html'
 import Loading from '../../components/Loading'
+import HomePostCard from './homePostCard'
 
 const Home = ({ filteredPost }) => {
   const [topics, setTopics] = useState([]);
@@ -23,28 +24,34 @@ const Home = ({ filteredPost }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(false)
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [hasMorePosts, setHasMorePosts] = useState(true)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchTopics();
-      setLoading(false);
-    };
+  useEffect(() => { 
     fetchData();
   }, [user]);
 
+  const fetchData = async () => {
+    await fetchTopics();
+    setLoading(false);
+  };
 
   const fetchTopics = async () => {
     const { data, error } = await supabase
       .from('topics')
-      .select('id, title');
+      .select('id, title')
+      
 
     if (error) {
       console.error('Error fetching topics:', error);
       return;
     }
 
-    setTopics(data);
+    // if(data.length == topics.length){
+    //   setHasMorePosts(false)
+    // } 
 
+    setTopics(data);
     const postsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic, user);
@@ -68,7 +75,8 @@ const Home = ({ filteredPost }) => {
         )
       `)
       .eq('topicId', topic.id)
-      .not('userId', 'eq', user.id);
+      .not('userId', 'eq', user.id)
+     
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -78,6 +86,47 @@ const Home = ({ filteredPost }) => {
     return data;
   };
 
+
+
+  const handleScroll = (event) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const screenHeight = Dimensions.get('window').height;
+    
+    const threshold = 100;
+
+    if (y + screenHeight + threshold >= contentHeight) {
+      fetchMorePosts()
+    }
+
+    setScrollPosition(y);
+  };
+
+  const fetchMorePosts = async () => {
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, title')
+  
+      
+
+    if (error) {
+      console.error('Error fetching topics:', error);
+      return;
+    }
+
+    if(data.length == topics.length){
+      setHasMorePosts(false)
+    } 
+
+    setTopics(data);
+    const postsByTopic = {};
+    for (const topic of data) {
+      const topicPosts = await fetchPosts(topic, user);
+      postsByTopic[topic.id] = topicPosts;
+    }
+
+    setPostsByTopic(postsByTopic);
+  }
 
   return (
 
@@ -104,88 +153,41 @@ const Home = ({ filteredPost }) => {
       </View>
 
 
-      <ScrollView>
+      <ScrollView  
+        onScroll={handleScroll}
+        scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id}>
             <View style={{ alignItems: 'center' }}>
-              <Text style={{ marginLeft: 10, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-            </View>
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
+                <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              </View>
             <ScrollView horizontal={true}>
               {(postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
                   setModalVisible(true);
                 }}>
-
-                  <Card style={{ margin: 20, width: 300, height: 200 }} key={filteredPost.id}>
-                    <Card.Title
-                      subtitle={filteredPost.users.name}
-                      titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
-                      subtitleStyle={{ fontSize: 14 }}
-                      left={() => (
-                        <Pressable onPress={() => router.push({
-                          pathname: '/users/[id]',
-                          params: { id: filteredPost.users.id, profile_img: filteredPost.users.profile_image, background_img: filteredPost.users.background_image }
-                        }
-                        )}>
-                          <Avatar uri={filteredPost.users.profile_image} />
-                        </Pressable>
-                      )}
-                      right={() => (
-                        <TouchableOpacity>
-                          <Icon name="moreIcon" style={{ margin: 18 }} />
-                        </TouchableOpacity>
-                      )}
-
-                    />
-                    <Card.Content
-                      style={{
-                        margin: 10,
-                        padding: 10,
-                        backgroundColor: 'lightgrey',
-                        borderRadius: 10,
-                      }}>
-
-                      <View
-                        style={{
-                          maxHeight: 50,
-                        }}
-                      >
-                        {filteredPost?.body && (
-                          
-                             <RenderHTML
-                            contentWidth={wp(100)}
-                            source={{ html: filteredPost?.body }}
-                            baseStyle={{
-                              fontSize: 14,
-                              lineHeight: 20, 
-                            }}
-                            style={{ maxHeight: hp(10) }} 
-                          />
-
-                         
-                         
-                        )}
-                      </View>
-
-
-                    </Card.Content>
-
-                    <Card.Actions style={styles.footer}>
-                      <TouchableOpacity>
-                        <Icon name="hexagonIcon" />
-                      </TouchableOpacity>
-
-                    </Card.Actions>
-                  </Card>
+                  <HomePostCard
+                    item={filteredPost}
+                    router={router}
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         ))}
-        <View style={{marginVertical: 30}}>
+        {hasMorePosts?  ( <View style={{marginVertical: 30}}>
           <Loading/>
-        </View>
+        </View> ): (
+          <View>
+            <Text>no more posts</Text>
+          </View>
+        )}
+
+        
+      
       </ScrollView>
 
 
@@ -213,7 +215,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-    marginHorizontal: wp(4)
+    marginHorizontal: wp(4),
+    backgroundColor: '#fad9f1',
+    borderRadius: 28
   },
   headerText: {
     flexDirection: 'row',

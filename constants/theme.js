@@ -10,7 +10,8 @@ export const theme = {
     textLight: '#7C7C7C',
     textDark: '#1D1D1D',
 
-    yellow: '#FFEA00',
+    yellow: '#e8e1a2',
+    likeYellow: '#ebd50e',
     roseLight: '#f87171'
 
  },

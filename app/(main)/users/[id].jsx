@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams} from 'expo-router';
 import PostCard from '../postCard'
 import ScreenWrapper from '../../../components/ScreenWrapper'
 import Loading from '../../../components/Loading'
+import Icon from '../../../assets/icons'
 const Profile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
@@ -84,7 +85,7 @@ const Profile = () => {
 
   return (
     <ScreenWrapper>
-        <StatusBar style={styles.statusBar} />
+      <View style={styles.header}>
         <View style={styles.backgroundImgContainer}>
           <Image
             source={bgImage}
@@ -100,13 +101,16 @@ const Profile = () => {
             uri={profile_img}
             style={styles.profilePic} />     
         </View>
+        </View>
 
         <ScrollView>
           {topics.map(topic => (
             <View key={topic.id} >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold' }}>{topic.title}</Text>
-              </View>
+               <View style={{ alignItems: 'center' }}>
+                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
+                    <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+                </View>
               <ScrollView horizontal={true}>
                 {(postsByTopic[topic.id] || []).map(filteredPost => (
                   <TouchableOpacity key={filteredPost.id} onPress={() => {
@@ -175,6 +179,13 @@ const styles = StyleSheet.create({
   postsContainer: {
     paddingTop: 28,
     marginTop: 10
-  }
+  },
+  header: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+
+  },
 
 })

@@ -39,30 +39,30 @@ const userProfile = () => {
       newPost.user = response.success ? response.data : {};
 
       const topicId = newPost.topicId;
-  
+
       setPostsByTopic((prevPosts) => ({
         ...prevPosts,
         [topicId]: [newPost, ...(prevPosts[topicId] || [])],
       }));
     }
   };
-  
+
 
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
     };
- 
+
     fetchData();
     setbgImage(getUserImage(user.background_image))
 
     let postChannel = supabase
-    .channel('posts')
-    .on('postgres_changes', {event: '*', schema: 'public', table: 'posts'}, handlePostEvent)
-    .subscribe()
+      .channel('posts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
+      .subscribe()
 
 
-    return ()=>{
+    return () => {
       supabase.removeChannel(postChannel)
     }
   }, []);
@@ -116,36 +116,46 @@ const userProfile = () => {
 
   return (
     <ScreenWrapper >
-      <StatusBar style={styles.statusBar} />
-      <View style={styles.backgroundImgContainer}>
-        <Image
-          source={bgImage}
-          style={{
-            height: 228,
-            width: "100%"
-          }} />
-        <BackButton router={router} />
+      <View style={styles.header}>
+        <View style={styles.backgroundImgContainer}>
+          <Image
+            source={bgImage}
+            style={{
+              height: 228,
+              width: "100%"
+            }} />
+          <BackButton router={router} />
+        </View>
+        <View style={styles.profilePicContainer}>
+          <Avatar
+            uri={user?.profile_image}
+            style={styles.profilePic} />
+        </View>
       </View>
-      <View style={styles.profilePicContainer}>
-        <Avatar
-          uri={user?.profile_image}
-          style={styles.profilePic} />
-      </View>
-      
+
+
       <ScrollView>
         {topics.map(topic => (
           <View key={topic.id} >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: 'bold' }}>{topic.title}</Text>
-              <TouchableOpacity key={topic.id} onPress={() => {
-                setSelectedTopic(topic.id);
-                setPostModalVisible(true);
-              }}>
-                <View>
-                  <Icon name='plusIcon' />
-                </View>
-              </TouchableOpacity>
+            <View style={{ alignItems: 'center' }}>
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+
+                <TouchableOpacity key={topic.id} onPress={() => {
+                  setSelectedTopic(topic.id);
+                  setPostModalVisible(true);
+                }}>
+                  <View style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>
+                    <Icon name='plusIcon' />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
+
+
             <ScrollView horizontal={true} >
               {(postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
@@ -155,16 +165,16 @@ const userProfile = () => {
                   <PostCard
                     user={user}
                     item={filteredPost}
-                    router={router}/>
+                    router={router} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         ))}
-        <View style={{marginVertical: 30}}>
-          <Loading/>
+        <View style={{ marginVertical: 30 }}>
+          <Loading />
         </View>
-  </ScrollView>
+      </ScrollView>
 
       <PostModal
         isVisible={modalVisible}
@@ -226,6 +236,13 @@ const styles = StyleSheet.create({
   postsContainer: {
     paddingTop: 28,
     marginTop: 10
-  }
+  },
+  header: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+
+  },
 
 })

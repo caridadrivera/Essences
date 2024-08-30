@@ -20,8 +20,6 @@ const PostCard = ({item, user, router}) => {
       const liked = true
       const likes = []
 
-      {console.log(item, 'whats filteredpost in here')}
-    
     
   return (
   
@@ -46,7 +44,7 @@ const PostCard = ({item, user, router}) => {
         }}>
         <Text
           style={{ fontSize: 14 }}
-          numberOfLines={3} // Limits the number of lines
+          numberOfLines={3} 
           ellipsizeMode="tail"
         >
           {item?.body && (
@@ -60,7 +58,7 @@ const PostCard = ({item, user, router}) => {
 
       <Card.Actions>
         <TouchableOpacity>
-          <Icon name="hexagonIcon" fill={liked? theme.colors.yellow : theme.colors.textLight} color={liked? theme.colors.yellow : theme.colors.textLight} />
+          <Icon name="hexagonIcon" fill={theme.colors.likeYellow}/>
         </TouchableOpacity>
         <Text style={styles.count}>
           {

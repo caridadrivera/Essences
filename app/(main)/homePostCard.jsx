@@ -6,107 +6,68 @@ import { Card } from 'react-native-paper';
 import Icon from '../../assets/icons';
 import Avatar from '../../components/Avatar';
 import { htmlToText } from 'html-to-text';
+import { theme } from '../../constants/theme';
+import { BorderFullIcon } from '@hugeicons/react-native-pro';
 
-const HomePostCard = ({ filteredPost }) => {
-    const [isOverflowing, setIsOverflowing] = useState(false);
-    const [truncatedText, setTruncatedText] = useState('');
-    const containerRef = useRef(null);
-
-    const MAX_HEIGHT = 50;
-    const MAX_CHARACTERS = 100;
-
-    useEffect(() => {
-        if (filteredPost?.body) {
-          // Convert HTML to plain text
-          const plainText = htmlToText(filteredPost.body, {
-            wordwrap: false,
-          });
+const HomePostCard = ({ item, router }) => {
     
-          if (isOverflowing) {
-            // Truncate text if overflowing
-            const truncated = plainText.length > MAX_CHARACTERS
-              ? plainText.substring(0, MAX_CHARACTERS) + '...'
-              : plainText;
-            setTruncatedText(truncated);
-          } else {
-            // Show full text if not overflowing
-            setTruncatedText(plainText);
-          }
-        }
-      }, [isOverflowing, filteredPost]);
-
-    const measureContentHeight = (event) => {
-        const { height } = event.nativeEvent.layout;
-        if (height > MAX_HEIGHT) {
-            setIsOverflowing(true);
-        } else {
-            setIsOverflowing(false);
-        }
-
-        console.log(truncatedText)
-    };
+    const liked = true
+    const likes = []
 
     return (
-
-
-
-
-        <Card style={{ margin: 20, width: 300, height: 200 }} key={filteredPost.id}>
-            <Card.Title
-                subtitle={filteredPost.users.name}
-                titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
-                subtitleStyle={{ fontSize: 14 }}
-                left={() => (
-                    <Pressable onPress={() => router.push({
-                        pathname: '/users/[id]',
-                        params: { id: filteredPost.users.id, profile_img: filteredPost.users.profile_image, background_img: filteredPost.users.background_image }
-                    }
-                    )}>
-                        <Avatar uri={filteredPost.users.profile_image} />
-                    </Pressable>
-                )}
-                right={() => (
-                    <TouchableOpacity>
-                        <Icon name="moreIcon" style={{ margin: 18 }} />
-                    </TouchableOpacity>
-                )}
-
-            />
-            <Card.Content
-                style={{
-                    margin: 10,
-                    padding: 10,
-                    backgroundColor: 'lightgrey',
-                    borderRadius: 10,
-                }}>
-
-                <View style={styles.container}>
-                    <View
-                        style={styles.content}
-                        ref={containerRef}
-                        onLayout={measureContentHeight}
-                    >
-                        {truncatedText ? (
-                            <Text style={styles.text}>{truncatedText}</Text>
-                        ) : (
-                            <RenderHTML
-                                contentWidth={wp(100)}
-                                source={{ html: filteredPost?.body }}
-                                baseStyle={styles.text}
-                            />
-                        )}
-                    </View>
-                </View>
-
-            </Card.Content>
-
-            <Card.Actions style={styles.footer}>
-                <TouchableOpacity>
-                    <Icon name="hexagonIcon" />
-                </TouchableOpacity>
-
-            </Card.Actions>
-        </Card>
+        <Card style={{ margin: 20, width: 300 }} key={item.id}>
+        <Card.Title
+          subtitle={item.users? item.users.name : item.name}
+          titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
+          subtitleStyle={{ fontSize: 14 }}
+          left={() => (
+            <Pressable onPress={() => router.push({
+              pathname: '/users/[id]',
+              params: { id: item.users.id, profile_img: item.users.profile_image, background_img: item.users.background_image }
+            }
+            )}>
+              <Avatar uri={item.users.profile_image} />
+            </Pressable>
+          )}
+          right={() => (
+            <TouchableOpacity>
+              <Icon name="moreIcon" style={{ margin: 18 }} />
+            </TouchableOpacity>
+          )}
+        />
+        <Card.Content
+          style={{
+            margin: 10,
+            padding: 10,
+            backgroundColor: 'lightgrey',
+            borderRadius: 10,
+          }}>
+          <Text
+            style={{ fontSize: 14 }}
+            numberOfLines={3} // Limits the number of lines
+            ellipsizeMode="tail"
+          >
+            {item?.body && (
+              <RenderHTML
+                contentWidth={wp(100)}
+                source={{ html: item?.body }}
+              />
+            )}
+          </Text>
+        </Card.Content>
+  
+        <Card.Actions>
+          <TouchableOpacity>
+            <Icon name="hexagonIcon" fill={theme.colors.likeYellow}  style={{BorderFullIcon: "bold"}}/>
+          </TouchableOpacity>
+          <Text style={styles.count}>
+            {
+              likes?.length
+            }
+          </Text>
+  
+        </Card.Actions>
+      </Card>
     );
 };
 
@@ -122,6 +83,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 20,
     },
+    
 });
 
 export default HomePostCard;

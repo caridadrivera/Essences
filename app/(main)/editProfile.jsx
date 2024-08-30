@@ -103,8 +103,8 @@ const EditProfile = () => {
     return (
         <ScreenWrapper>
             <View style={styles.backgroundImgContainer}>
-            <Pressable onPress={pickBackgroundImage}>
-                        <Text style={styles.editBackground}>Edit</Text>
+                 <Pressable style={styles.editBackground} onPress={pickBackgroundImage}>
+                        <Text style={{fontWeight: 'bold'}}>Update </Text>
                     </Pressable>
                 <ScrollView>
                    
@@ -198,15 +198,16 @@ const styles = StyleSheet.create({
         elevation: 7
     },
     editBackground: {
-        flexDirection: 'row',
+        alignItems: 'center',
         fontSize: 18,
         borderRadius: 50,
-        backgroundColor: 'white',
         shadowColor: theme.colors.textLight,
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.4,
         shadowRadius: 5,
-        elevation: 7
+        elevation: 7,
+        color: theme.colors.dark,
+        fontWeight: 'bold'
     },
 
     bio: {
