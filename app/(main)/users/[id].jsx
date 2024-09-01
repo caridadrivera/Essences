@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../../constants/theme'
@@ -10,29 +10,36 @@ import { useAuth } from '../../../context/AuthContext'
 import PostModal from '../postModal'
 import { Image } from 'expo-image'
 import { getUserImage } from '../../../services/userProfileImage'
-import { useRouter, useLocalSearchParams} from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import PostCard from '../postCard'
 import ScreenWrapper from '../../../components/ScreenWrapper'
 import Loading from '../../../components/Loading'
 import Icon from '../../../assets/icons'
+import { Alert } from 'react-native'
+
+
 const Profile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [bgImage, setbgImage] = useState(null)
-  
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [hasMorePosts, setHasMorePosts] = useState(true)
+
   const router = useRouter()
-  const {id, profile_img, background_img} = useLocalSearchParams()
-  
+  const { id, profile_img, background_img } = useLocalSearchParams()
+
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchTopics();
-    };
     fetchData();
-    
+
     setbgImage(getUserImage(background_img))
   }, []);
+
+
+  const fetchData = async () => {
+    await fetchTopics();
+  };
 
 
 
@@ -46,13 +53,12 @@ const Profile = () => {
           id, 
           profile_image,
           background_image
-        )
+        ),
+        postLikes(*)
       `)
       .eq('topicId', topic.id)
       .eq('userId', id)
-
-    
-
+      .order('created_at', {ascending: false})
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -82,6 +88,45 @@ const Profile = () => {
     setPostsByTopic(postsByTopic);
   };
 
+  const handleScroll = (event) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const screenHeight = Dimensions.get('window').height;
+
+    const threshold = 100;
+
+    if (y + screenHeight + threshold >= contentHeight) {
+      fetchMorePosts()
+    }
+
+    setScrollPosition(y);
+  };
+
+  const fetchMorePosts = async () => {
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, title')
+
+    if (error) {
+      console.error('Error fetching topics:', error);
+      return;
+    }
+
+    if (data.length == topics.length) {
+      setHasMorePosts(false)
+    }
+
+    setTopics(data);
+    const postsByTopic = {};
+    for (const topic of data) {
+      const topicPosts = await fetchPosts(topic);
+      postsByTopic[topic.id] = topicPosts;
+    }
+
+    setPostsByTopic(postsByTopic);
+  }
+
+
 
   return (
     <ScreenWrapper>
@@ -99,41 +144,48 @@ const Profile = () => {
         <View style={styles.profilePicContainer}>
           <Avatar
             uri={profile_img}
-            style={styles.profilePic} />     
+            style={styles.profilePic} />
         </View>
-        </View>
+      </View>
 
-        <ScrollView>
-          {topics.map(topic => (
-            <View key={topic.id} >
-               <View style={{ alignItems: 'center' }}>
-                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
-                    <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
-                </View>
-              <ScrollView horizontal={true}>
-                {(postsByTopic[topic.id] || []).map(filteredPost => (
-                  <TouchableOpacity key={filteredPost.id} onPress={() => {
-                    setSelectedPost(filteredPost);
-                    setModalVisible(true);
-                  }}>
-                    <PostCard
-                     item={filteredPost}
-                     user={filteredPost.users}/>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}>
+        {topics.map(topic => (
+          <View key={topic.id} >
+            <View style={{ alignItems: 'center' }}>
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
-          ))}
-          <View style={{marginVertical: 30}}>
-          <Loading/>
-        </View>
-        </ScrollView>
-        <PostModal
-          isVisible={modalVisible}
-          post={selectedPost}
-          onClose={() => setModalVisible(false)}
-        />
+            <ScrollView horizontal={true}>
+              {(postsByTopic[topic.id] || []).map(filteredPost => (
+                <TouchableOpacity key={filteredPost.id} onPress={() => {
+                  setSelectedPost(filteredPost);
+                  setModalVisible(true);
+                }}>
+                  <PostCard
+                    item={filteredPost}
+                    user={filteredPost.users} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ))}
+
+        {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
+          <Loading />
+        </View>) : (
+          <View style={{ marginVertical: 30, alignItems: 'center' }}>
+            <Text >No more posts</Text>
+          </View>
+        )}
+      </ScrollView>
+      <PostModal
+        isVisible={modalVisible}
+        post={selectedPost}
+        onClose={() => setModalVisible(false)}
+      />
 
     </ScreenWrapper>
   )

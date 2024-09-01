@@ -26,10 +26,29 @@ const Home = ({ filteredPost }) => {
   const [loading, setLoading] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
+  const [notificationCount, setNotificationCount] = useState(0)
 
   useEffect(() => { 
     fetchData();
+
+    let notificationsChannel = supabase
+    .channel('notifications')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
+    .subscribe()
+
+
+  return () => {
+    supabase.removeChannel(notificationsChannel)
+  }
   }, [user]);
+
+  const handleNotificationEvent = async (payload) => {
+    console.log('got new notification', payload)
+    if(payload.eventType == 'INSERT' && payload.new.id){
+      setNotificationCount(prev=> prev + 1)
+    }
+  }
+
 
   const fetchData = async () => {
     await fetchTopics();
@@ -46,10 +65,6 @@ const Home = ({ filteredPost }) => {
       console.error('Error fetching topics:', error);
       return;
     }
-
-    // if(data.length == topics.length){
-    //   setHasMorePosts(false)
-    // } 
 
     setTopics(data);
     const postsByTopic = {};
@@ -72,10 +87,12 @@ const Home = ({ filteredPost }) => {
           profile_image,
           background_image,
           id
-        )
+        ),
+        postLikes(*)
       `)
       .eq('topicId', topic.id)
       .not('userId', 'eq', user.id)
+      .order('created_at', {ascending: false})
      
 
     if (error) {
@@ -85,6 +102,10 @@ const Home = ({ filteredPost }) => {
 
     return data;
   };
+
+
+
+
 
 
 
@@ -107,7 +128,6 @@ const Home = ({ filteredPost }) => {
       .from('topics')
       .select('id, title')
   
-      
 
     if (error) {
       console.error('Error fetching topics:', error);
@@ -147,7 +167,17 @@ const Home = ({ filteredPost }) => {
               rounded={theme.radius.sm}
               style={{ borderWidth: 2 }} />
           </Pressable>
-          <LikeButton />
+          <TouchableOpacity style={styles.relateButton}  onPress={()=> {
+            setNotificationCount(0)
+            router.push('notifications')
+            }}>
+            <Icon name="hexagonIcon" fill={theme.colors.roseLight}/>
+            {notificationCount > 0 && (
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>{notificationCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <LogOutButton />
         </View>
       </View>
@@ -158,10 +188,12 @@ const Home = ({ filteredPost }) => {
         scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id}>
-            <View style={{ alignItems: 'center' }}>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
-                <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+            <View style={{ alignItems: 'center'}}>
+              <View style={{flexDirection: 'row' }}>
+                <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
+                  <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+                <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+                </View>
               </View>
             <ScrollView horizontal={true}>
               {(postsByTopic[topic.id] || []).map(filteredPost => (
@@ -170,6 +202,7 @@ const Home = ({ filteredPost }) => {
                   setModalVisible(true);
                 }}>
                   <HomePostCard
+                    user= {user}
                     item={filteredPost}
                     router={router}
                   />
@@ -178,18 +211,16 @@ const Home = ({ filteredPost }) => {
             </ScrollView>
           </View>
         ))}
-        {hasMorePosts?  ( <View style={{marginVertical: 30}}>
+        {hasMorePosts? ( 
+        <View style={{marginVertical: 30}}>
           <Loading/>
         </View> ): (
           <View>
             <Text>no more posts</Text>
           </View>
         )}
-
-        
-      
+   
       </ScrollView>
-
 
       <PostModal
         isVisible={modalVisible}
@@ -216,7 +247,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
     marginHorizontal: wp(4),
-    backgroundColor: '#fad9f1',
     borderRadius: 28
   },
   headerText: {
@@ -225,6 +255,13 @@ const styles = StyleSheet.create({
     padding: 10
   }
   ,
+  relateButton: {
+    marginHorizontal: 10, 
+    padding: 4,
+    margin: 10,
+    borderRadius: theme.radius.sm,
+    backgroundColor: 'rgba(0,0,0,0.07)',
+  },
   title: {
     color: theme.colors.text,
     fontSize: hp(3.2),
@@ -280,8 +317,21 @@ const styles = StyleSheet.create({
   postsContainer: {
     paddingTop: 28
   },
-  footer: {
-
+  pill: {
+    position: 'absolute',
+    right: -10,
+    top: -4,
+    height: hp(2.2),
+    width: hp(2.2),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: theme.colors.roseLight
+  },
+  pillText: {
+    color: 'white',
+    fontSize: hp(1.2),
+    fontWeight: theme.fonts.bold
   }
 
 

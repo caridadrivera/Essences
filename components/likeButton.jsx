@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase'
 
 const LikeButton = ({size=24}) => {
 
-    const { setAuth } = useAuth()
   return (
 
     <Pressable onPress={()=>{}} style={styles.buttonStyle}>

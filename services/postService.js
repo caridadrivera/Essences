@@ -24,3 +24,49 @@ export const createOrUpdatePost = async (post)=>{
 
 
 }
+
+
+
+
+export const createPostLike= async (postLike) => {
+    try{    
+        const { data, error } = await supabase
+        .from('postLikes')
+        .insert(postLike)
+        .select()
+        .single()
+
+        if(error){
+            return {success: false, msg: 'Could not like the post'}
+        }
+  
+        return {success: true, data: data}
+    }
+    catch(error) {
+        return {success: false, msg: 'Could not like the post'}
+
+    }
+
+  }
+
+
+  export const removePostLike = async (userId, postId) => {
+    try{    
+        const { error } = await supabase
+        .from('postLikes')
+        .delete()
+        .eq('userId', userId)
+        .eq('postId', postId)
+
+        if(error){
+           return {success: false, msg: 'Could not unlike the post'}
+        }
+  
+        return {success: true}
+    }
+    catch(error) {
+      return {success: false, msg: 'Could not unlike the post'}
+
+    }
+
+  };

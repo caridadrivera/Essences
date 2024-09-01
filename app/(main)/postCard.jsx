@@ -6,21 +6,53 @@ import RenderHTML from 'react-native-render-html'
 import { wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { theme } from '../../constants/theme'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { createPostLike, removePostLike } from '../../services/postService'
+import { Alert } from 'react-native'
 
 const PostCard = ({item, user, router}) => {
 
-
-    const leftComponent = ({ size }) => (
-        <Avatar
-          uri={user?.profile_image}
-          style={{ width: size, height: size, borderRadius: size / 2 }} />
+   const leftComponent = ({ size }) => (
+     <Avatar 
+       uri={user?.profile_image} 
+       style={{ width: size, height: size, borderRadius: size / 2 }} />
       );
-
-      const liked = true
-      const likes = []
-
     
+  const [likes, setLikes] = useState([]);
+
+    useEffect(()=>{
+     setLikes(item?.postLikes)
+    }, [])
+
+    const onLike = async () => {
+      if(liked){
+        let updatedLikes = likes.filter(like => like.userId !== user?.id)
+        setLikes([...updatedLikes])
+        let res = await removePostLike(item?.id, user?.id)
+        
+          if(!res.success){
+            Alert.alert('Post', 'Something went wrong')
+          }
+      } else {
+        let data = {
+          userId: user?.id,
+          postId: item?.id
+        }
+  
+        setLikes([...likes, data])
+        let res = await createPostLike(data)
+
+        if(!res.success){
+          Alert.alert('Post', 'Something went wrong')
+        }
+      }
+      
+
+    }
+
+   
+    const liked = likes.some(like => like.userId == user?.id);
   return (
   
     <Card style={{ margin: 20, width: 300 }} key={item.id}>
@@ -57,8 +89,10 @@ const PostCard = ({item, user, router}) => {
       </Card.Content>
 
       <Card.Actions>
-        <TouchableOpacity>
-          <Icon name="hexagonIcon" fill={theme.colors.likeYellow}/>
+        <TouchableOpacity onPress={
+          onLike
+        }>
+          <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'white'}/>
         </TouchableOpacity>
         <Text style={styles.count}>
           {

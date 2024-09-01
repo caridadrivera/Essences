@@ -8,11 +8,64 @@ import Avatar from '../../components/Avatar';
 import { htmlToText } from 'html-to-text';
 import { theme } from '../../constants/theme';
 import { BorderFullIcon } from '@hugeicons/react-native-pro';
+import { createPostLike, removePostLike } from '../../services/postService';
+import { Alert } from 'react-native';
+import { createNotification } from '../../services/notificationService';
 
-const HomePostCard = ({ item, router }) => {
+const HomePostCard = ({ user, item, router}) => {
     
-    const liked = true
-    const likes = []
+
+
+  const [likes, setLikes] = useState([])
+
+
+  useEffect(()=>{
+    setLikes(item?.postLikes)
+  }, [])
+
+
+  const onLike = async () => {
+    if(liked){
+      let updatedLikes = likes.filter(like => like.userId !== user?.id)
+
+      setLikes([...updatedLikes])
+
+      let res = await removePostLike(user?.id, item?.id)
+      if(!res.success){
+        Alert.alert('Post', 'Could not remove like')
+      }
+    } else {
+      let data = {
+        userId: user?.id,
+        postId: item?.id
+      }
+
+      setLikes([...likes, data])
+      let res = await createPostLike(data)
+
+      if(!res.success){
+        Alert.alert('Post', 'Something went wrong')
+      } else {
+        //create notification if the like comes from other user
+        if(!liked){
+          let notify = {
+            senderId: user.id,
+            receiverId: item.users.id,
+            title: 'relates to your post',
+            data: JSON.stringify({postId: item.id,  commentId: res?.data?.id})
+          }
+
+          createNotification(notify)
+        }
+      }
+    }
+    
+
+  }
+
+
+ 
+  const liked = likes.some(like => like.userId == user?.id ? true : false)
 
     return (
         <Card style={{ margin: 20, width: 300 }} key={item.id}>
@@ -57,8 +110,8 @@ const HomePostCard = ({ item, router }) => {
         </Card.Content>
   
         <Card.Actions>
-          <TouchableOpacity>
-            <Icon name="hexagonIcon" fill={theme.colors.likeYellow}  style={{BorderFullIcon: "bold"}}/>
+          <TouchableOpacity onPress={onLike}>
+            <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'none'} style={{BorderFullIcon: "bold"}}/>
           </TouchableOpacity>
           <Text style={styles.count}>
             {

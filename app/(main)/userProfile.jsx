@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
@@ -31,6 +31,28 @@ const userProfile = () => {
   const [bgImage, setbgImage] = useState(null)
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null)
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [hasMorePosts, setHasMorePosts] = useState(true)
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchTopics();
+    };
+
+    fetchData();
+    setbgImage(getUserImage(user.background_image))
+
+    let postChannel = supabase
+      .channel('posts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
+      .subscribe()
+ 
+
+    return () => {
+      supabase.removeChannel(postChannel)
+    }
+  }, []);
 
   const handlePostEvent = async (payload) => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
@@ -47,28 +69,6 @@ const userProfile = () => {
     }
   };
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchTopics();
-    };
-
-    fetchData();
-    setbgImage(getUserImage(user.background_image))
-
-    let postChannel = supabase
-      .channel('posts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
-      .subscribe()
-
-
-    return () => {
-      supabase.removeChannel(postChannel)
-    }
-  }, []);
-
-
-
   const fetchPosts = async (topic) => {
     const { data, error } = await supabase
       .from('posts')
@@ -77,10 +77,12 @@ const userProfile = () => {
         users (
           name,
           id
-        )
+        ),
+        postLikes(*)
       `)
       .eq('topicId', topic.id)
       .eq('userId', user.id)
+      .order('created_at', {ascending: false})
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -113,6 +115,44 @@ const userProfile = () => {
 
 
 
+  const handleScroll = (event) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const screenHeight = Dimensions.get('window').height;
+
+    const threshold = 100;
+
+    if (y + screenHeight + threshold >= contentHeight) {
+      fetchMorePosts()
+    }
+
+    setScrollPosition(y);
+  };
+
+
+  const fetchMorePosts = async () => {
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, title')
+
+    if (error) {
+      console.error('Error fetching topics:', error);
+      return;
+    }
+
+    if (data.length == topics.length) {
+      setHasMorePosts(false)
+    }
+
+    setTopics(data);
+    const postsByTopic = {};
+    for (const topic of data) {
+      const topicPosts = await fetchPosts(topic);
+      postsByTopic[topic.id] = topicPosts;
+    }
+
+    setPostsByTopic(postsByTopic);
+  }
 
   return (
     <ScreenWrapper >
@@ -133,8 +173,9 @@ const userProfile = () => {
         </View>
       </View>
 
-
-      <ScrollView>
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id} >
             <View style={{ alignItems: 'center' }}>
@@ -154,9 +195,7 @@ const userProfile = () => {
 
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
-
-
-            <ScrollView horizontal={true} >
+          <ScrollView horizontal={true} >
               {(postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
@@ -168,12 +207,17 @@ const userProfile = () => {
                     router={router} />
                 </TouchableOpacity>
               ))}
+              {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
+                <Loading />
+              </View>) : (
+                <View style={{ marginVertical: 30, alignItems: 'center' }}>
+                  <Text >No more posts</Text>
+                </View>
+              )}
             </ScrollView>
           </View>
         ))}
-        <View style={{ marginVertical: 30 }}>
-          <Loading />
-        </View>
+   
       </ScrollView>
 
       <PostModal
