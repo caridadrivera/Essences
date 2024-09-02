@@ -59,7 +59,7 @@ export const createPostLike= async (postLike) => {
         .eq('postId', postId)
 
         if(error){
-           return {success: false, msg: 'Could not unlike the post'}
+           return {success: false, msg: error}
         }
   
         return {success: true}

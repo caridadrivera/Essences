@@ -2,10 +2,20 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { PaperProvider, Card } from 'react-native-paper'
+import Avatar from '../../components/Avatar';
 import RenderHTML from 'react-native-render-html';
 import { wp } from '../../helpers/common';
 const PostModal = ({ isVisible, post, onClose }) => {
-    if (!post) return null; // Render nothing if no post is provided
+    if (!post) return null;
+
+
+
+    const leftComponent = ({ size }) => (
+        <Avatar
+            uri={post.users.profile_image}
+            style={{ width: size, height: size, borderRadius: size / 2 }} />
+    );
+
 
     return (
         <Modal
@@ -16,11 +26,17 @@ const PostModal = ({ isVisible, post, onClose }) => {
         >
             <View style={styles.centeredView}>
                 <View style={styles.modalView}>
-                    <Card>
+                    <Card style={{ margin: 20, width: wp(50) }} key={post.id}>
+                        <Card.Title
+                            subtitle={post.users.name}
+                            titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
+                            subtitleStyle={{ fontSize: 14 }}
+                            left={leftComponent}
+                        />
                         <Card.Content style={styles.cardContentStyle}>
                             {post?.body && (
                                 <RenderHTML
-                                    contentWidth={wp(100)}
+                                    contentWidth={wp(10)}
                                     source={{ html: post?.body }}
                                 />
                             )}

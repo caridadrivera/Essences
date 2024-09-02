@@ -11,15 +11,19 @@ import { useAuth } from '../../context/AuthContext'
 import { createPostLike, removePostLike } from '../../services/postService'
 import { Alert } from 'react-native'
 
-const PostCard = ({item, user, router}) => {
-
+const PostCard = ({item}) => {
+   
+ const {user} = useAuth()
    const leftComponent = ({ size }) => (
      <Avatar 
-       uri={user?.profile_image} 
+       uri={item?.users.profile_image} 
        style={{ width: size, height: size, borderRadius: size / 2 }} />
       );
+
     
-  const [likes, setLikes] = useState([]);
+   const [likes, setLikes] = useState([]);
+
+
 
     useEffect(()=>{
      setLikes(item?.postLikes)
@@ -28,8 +32,10 @@ const PostCard = ({item, user, router}) => {
     const onLike = async () => {
       if(liked){
         let updatedLikes = likes.filter(like => like.userId !== user?.id)
+       
         setLikes([...updatedLikes])
-        let res = await removePostLike(item?.id, user?.id)
+        
+        let res = await removePostLike(user?.id, item?.id)
         
           if(!res.success){
             Alert.alert('Post', 'Something went wrong')
@@ -39,6 +45,8 @@ const PostCard = ({item, user, router}) => {
           userId: user?.id,
           postId: item?.id
         }
+
+
   
         setLikes([...likes, data])
         let res = await createPostLike(data)
@@ -52,7 +60,7 @@ const PostCard = ({item, user, router}) => {
     }
 
    
-    const liked = likes.some(like => like.userId == user?.id);
+    const liked = likes.some(like => like.userId == user?.id ? true : false );
   return (
   
     <Card style={{ margin: 20, width: 300 }} key={item.id}>
@@ -89,10 +97,8 @@ const PostCard = ({item, user, router}) => {
       </Card.Content>
 
       <Card.Actions>
-        <TouchableOpacity onPress={
-          onLike
-        }>
-          <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'white'}/>
+        <TouchableOpacity onPress={onLike}>
+          <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'none'}/>
         </TouchableOpacity>
         <Text style={styles.count}>
           {

@@ -20,6 +20,7 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
   const onSubmit = async () =>{
     if(!bodyRef.current ){
       Alert.alert("Post", "Your post is empty :(")
+      return
     }
     const data = {
       body: bodyRef.current,

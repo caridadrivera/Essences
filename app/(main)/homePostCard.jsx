@@ -14,14 +14,13 @@ import { createNotification } from '../../services/notificationService';
 
 const HomePostCard = ({ user, item, router}) => {
     
-
-
   const [likes, setLikes] = useState([])
 
 
   useEffect(()=>{
     setLikes(item?.postLikes)
   }, [])
+  
 
 
   const onLike = async () => {
@@ -74,11 +73,13 @@ const HomePostCard = ({ user, item, router}) => {
           titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
           subtitleStyle={{ fontSize: 14 }}
           left={() => (
+         
             <Pressable onPress={() => router.push({
               pathname: '/users/[id]',
-              params: { id: item.users.id, profile_img: item.users.profile_image, background_img: item.users.background_image }
+              params: { id: item.users.id, profile_img: item.users.profile_image, background_img: item.users.background_image , likes: item.postLikes}
             }
             )}>
+
               <Avatar uri={item.users.profile_image} />
             </Pressable>
           )}

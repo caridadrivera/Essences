@@ -159,14 +159,14 @@ const Profile = () => {
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
             <ScrollView horizontal={true}>
-              {(postsByTopic[topic.id] || []).map(filteredPost => (
+              {(postsByTopic[topic.id] || []).map(filteredPost => (           
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
                   setModalVisible(true);
                 }}>
                   <PostCard
-                    item={filteredPost}
-                    user={filteredPost.users} />
+                    item={filteredPost}       
+                    otherUser={filteredPost.users} />
                 </TouchableOpacity>
               ))}
             </ScrollView>

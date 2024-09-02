@@ -36,18 +36,42 @@ const Home = ({ filteredPost }) => {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
     .subscribe()
 
+   let  postChannel = supabase
+    .channel('posts')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
+    .subscribe()
+
 
   return () => {
     supabase.removeChannel(notificationsChannel)
+    supabase.removeChannel(postChannel)
+
+
   }
-  }, [user]);
+
+  
+  }, [user, postsByTopic]);
 
   const handleNotificationEvent = async (payload) => {
-    console.log('got new notification', payload)
     if(payload.eventType == 'INSERT' && payload.new.id){
       setNotificationCount(prev=> prev + 1)
     }
   }
+
+  const handlePostEvent = async (payload) => {
+    if (payload.eventType === 'INSERT' && payload?.new?.id) {
+      let newPost = { ...payload.new };
+      let response = await getUserData(newPost.userId);
+      newPost.user = response.success ? response.data : {};
+
+      const topicId = newPost.topicId;
+
+      setPostsByTopic((prevPosts) => ({
+        ...prevPosts,
+        [topicId]: [newPost, ...(prevPosts[topicId] || [])],
+      }));
+    }
+  };
 
 
   const fetchData = async () => {
@@ -67,13 +91,13 @@ const Home = ({ filteredPost }) => {
     }
 
     setTopics(data);
-    const postsByTopic = {};
+    const fetchedPostsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic, user);
-      postsByTopic[topic.id] = topicPosts;
+      fetchedPostsByTopic[topic.id] = topicPosts;
     }
 
-    setPostsByTopic(postsByTopic);
+    setPostsByTopic(fetchedPostsByTopic);
   };
 
 

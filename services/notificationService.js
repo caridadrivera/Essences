@@ -31,7 +31,8 @@ export const createNotification = async (notification) => {
       .from('notifications')
       .select(`
         *, 
-        sender: senderId(id, name, profile_image) 
+        sender: senderId(id, name, profile_image),
+        created_at 
         `)
       .eq('receiverId', receiverId)
       .order("created_at", {ascending: false});

@@ -43,16 +43,22 @@ const userProfile = () => {
     fetchData();
     setbgImage(getUserImage(user.background_image))
 
-    let postChannel = supabase
-      .channel('posts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
-      .subscribe()
- 
-
-    return () => {
-      supabase.removeChannel(postChannel)
+  let postChannel;
+    if(postModalVisible){
+      postChannel = supabase
+        .channel('posts')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
+        .subscribe()
     }
-  }, []);
+    
+    return () => {
+      if(postChannel){
+        supabase.removeChannel(postChannel)
+      }
+    }
+
+
+  }, [postModalVisible]);
 
   const handlePostEvent = async (payload) => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
@@ -76,7 +82,8 @@ const userProfile = () => {
         *,
         users (
           name,
-          id
+          id,
+          profile_image
         ),
         postLikes(*)
       `)
@@ -113,8 +120,6 @@ const userProfile = () => {
     setPostsByTopic(postsByTopic);
   };
 
-
-
   const handleScroll = (event) => {
     const y = event.nativeEvent.contentOffset.y;
     const contentHeight = event.nativeEvent.contentSize.height;
@@ -145,13 +150,13 @@ const userProfile = () => {
     }
 
     setTopics(data);
-    const postsByTopic = {};
+    const fetchedPostsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic);
-      postsByTopic[topic.id] = topicPosts;
+      fetchedPostsByTopic[topic.id] = topicPosts;
     }
 
-    setPostsByTopic(postsByTopic);
+    setPostsByTopic(fetchedPostsByTopic);
   }
 
   return (
@@ -164,7 +169,7 @@ const userProfile = () => {
               height: 228,
               width: "100%"
             }} />
-          <BackButton router={router} />
+          <Icon name="arrowLeft" onPress={()=> router.push('home')} />
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar
@@ -182,17 +187,15 @@ const userProfile = () => {
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-
                 <TouchableOpacity key={topic.id} onPress={() => {
                   setSelectedTopic(topic.id);
                   setPostModalVisible(true);
-                }}>
+                  }}>
                   <View style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>
                     <Icon name='plusIcon' />
                   </View>
                 </TouchableOpacity>
               </View>
-
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
           <ScrollView horizontal={true} >
@@ -202,7 +205,6 @@ const userProfile = () => {
                   setModalVisible(true);
                 }}>
                   <PostCard
-                    user={user}
                     item={filteredPost}
                     router={router} />
                 </TouchableOpacity>

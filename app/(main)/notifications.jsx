@@ -7,7 +7,6 @@ import { hp, wp } from '../../helpers/common'
 import { theme } from '../../constants/theme'
 import NotificationItem from '../../components/NotificationItem'
 import { useRouter } from 'expo-router'
-import { Header } from '@react-navigation/stack'
 import Icon from '../../assets/icons'
 
 
