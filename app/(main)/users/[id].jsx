@@ -138,8 +138,9 @@ const Profile = () => {
               height: 228,
               width: "100%"
             }} />
-          <BackButton router={router} />
-
+            <Pressable  onPress={()=> router.push('home')}>
+                <Icon name="arrowLeft" />
+            </Pressable>
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar

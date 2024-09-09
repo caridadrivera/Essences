@@ -110,7 +110,6 @@ const EditProfile = () => {
                    
                     <Image
                         source={backgroundImgSrc}
-                        resizeMode='cover'
                         style={{
                             height: 228,
                             width: "100%"

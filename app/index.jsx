@@ -8,9 +8,12 @@ const index = () => {
     const router = useRouter()
 
   return (
+    
     <ScreenWrapper>
       <Welcome/>
    </ScreenWrapper >
+
+
   )
 }
 

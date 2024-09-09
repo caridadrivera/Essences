@@ -25,11 +25,11 @@ const MainLayout = () => {
       if(session){
         setAuth(session?.user)
         updateUserData(session?.user, session?.user.email)
-        router.replace('/home')
+        router.push('/home')
 
       }else {
         setAuth(null)
-        router.replace('/welcome')
+        router.push('/welcome')
       }
     })
   }, [] )

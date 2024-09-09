@@ -169,7 +169,9 @@ const userProfile = () => {
               height: 228,
               width: "100%"
             }} />
-          <Icon name="arrowLeft" onPress={()=> router.push('home')} />
+          <Pressable onPress={()=> router.push('home')}>
+                <Icon name="arrowLeft" />
+            </Pressable>
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar
