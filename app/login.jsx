@@ -11,6 +11,8 @@ import Input from '../components/Input'
 import ButtonComponent from '../components/Button'
 import { Alert } from 'react-native'
 import { supabase } from '../lib/supabase'
+import { getUserImage } from '../services/userProfileImage'
+import { Image } from 'expo-image'
 
 const Login = () => {
 
@@ -18,6 +20,10 @@ const Login = () => {
   const emailRef = useRef("")
   const passwordRef = useRef("")
   const [loading, setLoading ] = useState(false)
+
+
+  let iconImg= getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z')
+
 
 
   const onSubmit = async () =>{
@@ -43,9 +49,14 @@ const Login = () => {
   }
   return (
     <ScreenWrapper bg="white"> 
-      <StatusBar style="dark"/>
-      <View style={styles.container}>
+       <View style={styles.container}>
         <BackButton router={router}/>
+        <View>
+             <Image source={iconImg} style={{
+                            height: 180,
+                            width: "100%"
+                        }} />
+            </View>
 
         <View>
           <Text style={styles.welcomeText}>Hey,</Text>
@@ -72,9 +83,11 @@ const Login = () => {
             />
         </View>
 
-        <Text style={styles.forgotPassword}>
-          Forgot Password?
-        </Text>
+        <Pressable style={styles.forgotPassword} onPress={()=> router.push('ForgotPassword')}>
+          <Text>
+             forget password     
+          </Text>
+        </Pressable>
 
         <ButtonComponent title={'Login'} loading={loading} onPress={onSubmit}/>
 
@@ -99,7 +112,7 @@ export default Login
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
-    gap: 45, 
+    gap: 35, 
     paddingHorizontal: wp(5)
   },
   welcomeText: {
@@ -108,7 +121,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text
   },
   form: {
-    gap: 25, 
+    gap: 20, 
   },
   footerText: {
     textAlign: 'center',

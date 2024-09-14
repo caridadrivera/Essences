@@ -28,7 +28,7 @@ const Profile = () => {
   const [hasMorePosts, setHasMorePosts] = useState(true)
 
   const router = useRouter()
-  const { id, profile_img, background_img } = useLocalSearchParams()
+  const { id, profile_img, background_img, user_name, user_bio } = useLocalSearchParams()
 
   useEffect(() => {
     fetchData();
@@ -52,7 +52,8 @@ const Profile = () => {
           name,
           id, 
           profile_image,
-          background_image
+          background_image,
+          bio
         ),
         postLikes(*)
       `)
@@ -149,6 +150,14 @@ const Profile = () => {
         </View>
       </View>
 
+
+      <View style={{ alignItems: 'center', marginBottom: 18}}>
+        <Text style={{fontWeight: 'bold' }}>{user_name}</Text>
+        <Text style={{fontStyle: 'italic' }}>{user_bio}</Text>
+        <Text style={{fontWeight: 'bold' }}>__________________</Text>
+      </View>
+
+
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
@@ -157,7 +166,7 @@ const Profile = () => {
             <View style={{ alignItems: 'center' }}>
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
               <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              
             </View>
             <ScrollView horizontal={true}>
               {(postsByTopic[topic.id] || []).map(filteredPost => (           

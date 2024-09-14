@@ -76,17 +76,12 @@ const HomePostCard = ({ user, item, router}) => {
          
             <Pressable onPress={() => router.push({
               pathname: '/users/[id]',
-              params: { id: item.users.id, profile_img: item.users.profile_image, background_img: item.users.background_image , likes: item.postLikes}
+              params: { id: item.users.id, profile_img: item.users.profile_image, background_img: item.users.background_image , likes: item.postLikes, user_name: item.users.name, user_bio: item.users.bio }
             }
             )}>
 
               <Avatar uri={item.users.profile_image} />
             </Pressable>
-          )}
-          right={() => (
-            <TouchableOpacity>
-              <Icon name="moreIcon" style={{ margin: 18 }} />
-            </TouchableOpacity>
           )}
         />
         <Card.Content

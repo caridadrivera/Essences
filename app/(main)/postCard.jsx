@@ -10,8 +10,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { createPostLike, removePostLike } from '../../services/postService'
 import { Alert } from 'react-native'
+import { supabase } from '../../lib/supabase'
 
-const PostCard = ({item}) => {
+const PostCard = ({item, router}) => {
    
  const {user} = useAuth()
    const leftComponent = ({ size }) => (
@@ -45,9 +46,6 @@ const PostCard = ({item}) => {
           userId: user?.id,
           postId: item?.id
         }
-
-
-  
         setLikes([...likes, data])
         let res = await createPostLike(data)
 
@@ -59,8 +57,26 @@ const PostCard = ({item}) => {
 
     }
 
-   
     const liked = likes.some(like => like.userId == user?.id ? true : false );
+
+    const [showDeleteButton, setShowDeleteButton] = useState(false);
+
+    const handleDelete = async () => {
+      try {
+        const { error } = await supabase
+          .from('posts')
+          .delete()
+          .match({ id: item.id, userId: user.id });
+  
+        if (error) throw error;
+        
+        router.push('userProfile')
+        setShowDeleteButton(false); 
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      }
+    }
+
   return (
   
     <Card style={{ margin: 20, width: 300 }} key={item.id}>
@@ -68,13 +84,16 @@ const PostCard = ({item}) => {
         subtitle={item.users? item.users.name : item.name}
         titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
         subtitleStyle={{ fontSize: 14 }}
-        left={leftComponent}
-        right={() => (
-          <TouchableOpacity>
-            <Icon name="moreIcon" style={{ margin: 18 }} />
-          </TouchableOpacity>
-        )}
+        left={leftComponent}  
+        right={() =>
+          user.id === item.users.id  && ( 
+            <TouchableOpacity onPress={handleDelete}>
+                <Icon name="deleteIcon" style={{ color: 'red', margin: 18, size: 4  }}/>
+            </TouchableOpacity>
+          ) 
+        }
       />
+
       <Card.Content
         style={{
           margin: 10,
@@ -82,6 +101,7 @@ const PostCard = ({item}) => {
           backgroundColor: 'lightgrey',
           borderRadius: 10,
         }}>
+          
         <Text
           style={{ fontSize: 14 }}
           numberOfLines={3} 

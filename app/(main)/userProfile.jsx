@@ -30,6 +30,7 @@ const userProfile = () => {
 
   const [bgImage, setbgImage] = useState(null)
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [deletePost, setPostDelete] = useState(false)
   const [selectedTopic, setSelectedTopic] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
@@ -43,25 +44,30 @@ const userProfile = () => {
     fetchData();
     setbgImage(getUserImage(user.background_image))
 
-  let postChannel;
-    if(postModalVisible){
+    let postChannel;
+    if (postModalVisible) {
       postChannel = supabase
         .channel('posts')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
         .subscribe()
     }
-    
+
+
+
     return () => {
-      if(postChannel){
+      if (postChannel) {
         supabase.removeChannel(postChannel)
       }
+
+     
     }
 
 
   }, [postModalVisible]);
 
   const handlePostEvent = async (payload) => {
-    if (payload.eventType === 'INSERT' && payload?.new?.id) {
+    console.log(payload)
+    if ((payload.eventType === 'INSERT') && payload?.new?.id) {
       let newPost = { ...payload.new };
       let response = await getUserData(newPost.userId);
       newPost.user = response.success ? response.data : {};
@@ -83,13 +89,14 @@ const userProfile = () => {
         users (
           name,
           id,
-          profile_image
+          profile_image,
+          bio
         ),
         postLikes(*)
       `)
       .eq('topicId', topic.id)
       .eq('userId', user.id)
-      .order('created_at', {ascending: false})
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -118,6 +125,7 @@ const userProfile = () => {
     }
 
     setPostsByTopic(postsByTopic);
+    setHasMorePosts(false)
   };
 
   const handleScroll = (event) => {
@@ -169,9 +177,9 @@ const userProfile = () => {
               height: 228,
               width: "100%"
             }} />
-          <Pressable onPress={()=> router.push('home')}>
-                <Icon name="arrowLeft" />
-            </Pressable>
+          <Pressable onPress={() => router.push('home')}>
+            <Icon name="arrowLeft" />
+          </Pressable>
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar
@@ -180,27 +188,32 @@ const userProfile = () => {
         </View>
       </View>
 
+      <View style={{ alignItems: 'center' }}>
+        <Text style={{ fontWeight: 'bold' }}>{user.name}</Text>
+        <Text style={{ fontStyle: 'italic' }}>{user.bio}</Text>
+        <Text style={{ fontWeight: 'bold' }}>__________________</Text>
+      </View>
+
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id} >
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: 'center', marginTop: 30 }}>
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                 <TouchableOpacity key={topic.id} onPress={() => {
                   setSelectedTopic(topic.id);
                   setPostModalVisible(true);
-                  }}>
+                }}>
                   <View style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>
                     <Icon name='plusIcon' />
                   </View>
                 </TouchableOpacity>
               </View>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             </View>
-          <ScrollView horizontal={true} >
+            <ScrollView horizontal={true} >
               {(postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
@@ -211,17 +224,19 @@ const userProfile = () => {
                     router={router} />
                 </TouchableOpacity>
               ))}
-              {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
-                <Loading />
-              </View>) : (
-                <View style={{ marginVertical: 30, alignItems: 'center' }}>
-                  <Text >No more posts</Text>
-                </View>
-              )}
+
             </ScrollView>
           </View>
         ))}
-   
+
+        {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
+          <Loading />
+        </View>) : (
+          <View style={{ marginVertical: 30, alignItems: 'center' }}>
+            <Text >No more posts</Text>
+          </View>
+        )}
+
       </ScrollView>
 
       <PostModal

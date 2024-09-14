@@ -15,6 +15,10 @@ import PostModal from './postModal'
 import RenderHTML from 'react-native-render-html'
 import Loading from '../../components/Loading'
 import HomePostCard from './homePostCard'
+import { getUserImage } from '../../services/userProfileImage'
+import { Image } from 'expo-image'
+import { fetchNotifications } from '../../services/notificationService'
+
 
 const Home = ({ filteredPost }) => {
   const [topics, setTopics] = useState([]);
@@ -33,26 +37,31 @@ const Home = ({ filteredPost }) => {
 
     let notificationsChannel = supabase
     .channel('notifications')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
     .subscribe()
-
 
   return () => {
     supabase.removeChannel(notificationsChannel)
- 
   }
 
-  
-  }, []);
+}, []);
+
+
+const getNotifications = async () => {
+  let response = await fetchNotifications(user.id)
+
+  if (response.success) {
+    console.log(response.data)
+   // setNotificationCount(response)
+  }
+}
+
 
   const handleNotificationEvent = async (payload) => {
     if(payload.eventType == 'INSERT' && payload.new.id){
       setNotificationCount(prev=> prev + 1)
     }
   }
-
-
-
 
   const fetchData = async () => {
     await fetchTopics();
@@ -90,7 +99,8 @@ const Home = ({ filteredPost }) => {
           name,
           profile_image,
           background_image,
-          id
+          id,
+          bio
         ),
         postLikes(*)
       `)
@@ -106,12 +116,7 @@ const Home = ({ filteredPost }) => {
 
     return data;
   };
-
-
-
-
-
-
+  let iconImg= getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   const handleScroll = (event) => {
     const y = event.nativeEvent.contentOffset.y;
@@ -154,10 +159,15 @@ const Home = ({ filteredPost }) => {
 
   return (
 
+  
     <ScreenWrapper>
       <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Essences</Text>
+      <Image source={iconImg} style={{
+                            height: 148,
+                            width: "78%"
+                        }} />
+
+    <View style={styles.headerText}>
           <Pressable onPress={() => { router.push('editProfile') }}>
             <Icon name="settingsIcon" />
           </Pressable>
@@ -216,12 +226,12 @@ const Home = ({ filteredPost }) => {
           </View>
         ))}
         {hasMorePosts? ( 
-        <View style={{marginVertical: 30}}>
+        <View style={{ marginVertical: 30, alignItems: 'center' }}>
           <Loading/>
         </View> ): (
-          <View>
-            <Text>no more posts</Text>
-          </View>
+          <View style={{ marginVertical: 30, alignItems: 'center' }}>
+          <Text >No more posts</Text>
+        </View>
         )}
    
       </ScrollView>

@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text , Image, Pressable} from 'react-native'
+import { View, StyleSheet, Text , Pressable} from 'react-native'
 import React , {useState, useRef} from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { StatusBar } from 'expo-status-bar'
@@ -12,6 +12,8 @@ import Icon from '../assets/icons'
 import { useRouter } from 'expo-router'
 import {supabase} from  '../lib/supabase'
 import { Alert } from 'react-native'
+import { getUserImage } from '../services/userProfileImage'
+import { Image } from 'expo-image'
 
 const Welcome = () => {
 
@@ -20,6 +22,8 @@ const Welcome = () => {
   const emailRef = useRef("")
   const passwordRef = useRef("")
   const [loading, setLoading ] = useState(false)  
+
+
 
 
   const onSubmit = async () =>{
@@ -51,15 +55,22 @@ const Welcome = () => {
   }
 
 
+
+  let iconImg= getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z')
+
+
   return (
     <ScreenWrapper bg="white">
       <StatusBar style="dark"/>
       <View style={styles.container}>
 
 
-     <View style={{gap: 15}}>
-      <Text style={styles.title}>..:Essences:..</Text>
-      <Text style={styles.punchline}> The safe space to share stories that have shaped us... </Text>
+     <View style={{gap: 8}}>
+      <Image source={iconImg} style={{
+                            height: 208,
+                            width: "100%"
+                        }} />
+      <Text style={styles.punchline}> Where we share stories. </Text>
      </View>
 
 
@@ -116,7 +127,7 @@ export default Welcome
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 45, 
+    gap: 38, 
     paddingHorizontal: wp(4)
   },
   welcomeImage: {
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text
   },
   footer: {
-    gap: 30, 
+    gap: 38, 
     width:"80%"
   },
   buttonTextContainer: {
@@ -153,7 +164,7 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6)
   },
   form: {
-    gap: 28, 
+    gap: 18, 
     paddingTop: wp(8),
   },
   // footerText: {
