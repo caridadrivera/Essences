@@ -18,6 +18,7 @@ import HomePostCard from './homePostCard'
 import { getUserImage } from '../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { fetchNotifications } from '../../services/notificationService'
+import { useNotification } from '../../context/NotificationContext'
 
 
 const Home = ({ filteredPost }) => {
@@ -30,38 +31,30 @@ const Home = ({ filteredPost }) => {
   const [loading, setLoading] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
-  const [notificationCount, setNotificationCount] = useState(0)
+  const {notificationCount} = useNotification()
 
   useEffect(() => { 
     fetchData();
 
-    let notificationsChannel = supabase
-    .channel('notifications')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
-    .subscribe()
+  //   let notificationsChannel = supabase
+  //   .channel('notifications')
+  //   .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
+  //   .subscribe()
 
-  return () => {
-    supabase.removeChannel(notificationsChannel)
-  }
+  // return () => {
+  //   supabase.removeChannel(notificationsChannel)
+  // }
+
+  console.log(notificationCount)
 
 }, []);
 
 
-const getNotifications = async () => {
-  let response = await fetchNotifications(user.id)
-
-  if (response.success) {
-    console.log(response.data)
-   // setNotificationCount(response)
-  }
-}
-
-
-  const handleNotificationEvent = async (payload) => {
-    if(payload.eventType == 'INSERT' && payload.new.id){
-      setNotificationCount(prev=> prev + 1)
-    }
-  }
+  // const handleNotificationEvent = async (payload) => {
+  //   if(payload.eventType == 'INSERT' && payload.new.id){
+  //     setNotificationCount(prev=> prev + 1)
+  //   }
+  // }
 
   const fetchData = async () => {
     await fetchTopics();
@@ -182,7 +175,7 @@ const getNotifications = async () => {
               style={{ borderWidth: 2 }} />
           </Pressable>
           <TouchableOpacity style={styles.relateButton}  onPress={()=> {
-            setNotificationCount(0)
+           // setNotificationCount(0)
             router.push('notifications')
             }}>
             <Icon name="hexagonIcon" fill={theme.colors.roseLight}/>

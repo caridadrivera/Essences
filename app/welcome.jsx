@@ -70,7 +70,7 @@ const Welcome = () => {
                             height: 208,
                             width: "100%"
                         }} />
-      <Text style={styles.punchline}> Where we share stories. </Text>
+      <Text style={styles.punchline}> A place to share... </Text>
      </View>
 
 

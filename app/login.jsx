@@ -85,7 +85,7 @@ const Login = () => {
 
         <Pressable style={styles.forgotPassword} onPress={()=> router.push('ForgotPassword')}>
           <Text>
-             forget password     
+             Forgot Password     
           </Text>
         </Pressable>
 

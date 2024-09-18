@@ -33,7 +33,7 @@ export default ButtonComponent
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryDark,
     height: hp(6.6),
     justifyContent: 'center',
     alignItems: 'center',

@@ -5,13 +5,14 @@ import { AuthProvider, useAuth, setUserData } from '../context/AuthContext'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getUserData } from '../services/userService'
+import AppProviders from '../context/AppProviders'
 
 LogBox.ignoreLogs(['Warning: TNodeChildrenRenderer', 'Warning: MemoizedTNodeRenderer', 'Warning: TRenderEngineProvider'])
 const _layout = () =>{
   return (
-      <AuthProvider>
+      <AppProviders>
         <MainLayout/>
-      </AuthProvider>
+      </AppProviders>
   )
 }
 
