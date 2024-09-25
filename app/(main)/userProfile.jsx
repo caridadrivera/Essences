@@ -30,7 +30,6 @@ const userProfile = () => {
 
   const [bgImage, setbgImage] = useState(null)
   const [postModalVisible, setPostModalVisible] = useState(false);
-  const [deletePost, setPostDelete] = useState(false)
   const [selectedTopic, setSelectedTopic] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
@@ -40,6 +39,7 @@ const userProfile = () => {
     const fetchData = async () => {
       await fetchTopics();
     };
+    console.log(user, 'user obj from userprofile')
 
     fetchData();
     setbgImage(getUserImage(user.background_image))
@@ -66,7 +66,6 @@ const userProfile = () => {
   }, [postModalVisible]);
 
   const handlePostEvent = async (payload) => {
-    console.log(payload)
     if ((payload.eventType === 'INSERT') && payload?.new?.id) {
       let newPost = { ...payload.new };
       let response = await getUserData(newPost.userId);

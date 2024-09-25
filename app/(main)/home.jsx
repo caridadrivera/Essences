@@ -31,30 +31,12 @@ const Home = ({ filteredPost }) => {
   const [loading, setLoading] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
-  const {notificationCount} = useNotification()
+  const { notificationCount, setNotificationCount } = useNotification()
 
-  useEffect(() => { 
+  useEffect(() => {
+    setLoading(true)
     fetchData();
-
-  //   let notificationsChannel = supabase
-  //   .channel('notifications')
-  //   .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
-  //   .subscribe()
-
-  // return () => {
-  //   supabase.removeChannel(notificationsChannel)
-  // }
-
-  console.log(notificationCount)
-
-}, []);
-
-
-  // const handleNotificationEvent = async (payload) => {
-  //   if(payload.eventType == 'INSERT' && payload.new.id){
-  //     setNotificationCount(prev=> prev + 1)
-  //   }
-  // }
+  }, []);
 
   const fetchData = async () => {
     await fetchTopics();
@@ -65,7 +47,7 @@ const Home = ({ filteredPost }) => {
     const { data, error } = await supabase
       .from('topics')
       .select('id, title')
-      
+
 
     if (error) {
       console.error('Error fetching topics:', error);
@@ -99,8 +81,8 @@ const Home = ({ filteredPost }) => {
       `)
       .eq('topicId', topic.id)
       .not('userId', 'eq', user.id)
-      .order('created_at', {ascending: false})
-     
+      .order('created_at', { ascending: false })
+
 
     if (error) {
       console.error(`Error fetching posts for topic ${topic.id}:`, error);
@@ -109,13 +91,13 @@ const Home = ({ filteredPost }) => {
 
     return data;
   };
-  let iconImg= getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
+  let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   const handleScroll = (event) => {
     const y = event.nativeEvent.contentOffset.y;
     const contentHeight = event.nativeEvent.contentSize.height;
     const screenHeight = Dimensions.get('window').height;
-    
+
     const threshold = 100;
 
     if (y + screenHeight + threshold >= contentHeight) {
@@ -129,16 +111,16 @@ const Home = ({ filteredPost }) => {
     const { data, error } = await supabase
       .from('topics')
       .select('id, title')
-  
+
 
     if (error) {
       console.error('Error fetching topics:', error);
       return;
     }
 
-    if(data.length == topics.length){
+    if (data.length == topics.length) {
       setHasMorePosts(false)
-    } 
+    }
 
     setTopics(data);
     const postsByTopic = {};
@@ -152,15 +134,15 @@ const Home = ({ filteredPost }) => {
 
   return (
 
-  
+
     <ScreenWrapper>
       <View style={styles.header}>
-      <Image source={iconImg} style={{
-                            height: 148,
-                            width: "78%"
-                        }} />
+        <Image source={iconImg} style={{
+          height: 148,
+          width: "78%"
+        }} />
 
-    <View style={styles.headerText}>
+        <View style={styles.headerText}>
           <Pressable onPress={() => { router.push('editProfile') }}>
             <Icon name="settingsIcon" />
           </Pressable>
@@ -174,11 +156,11 @@ const Home = ({ filteredPost }) => {
               rounded={theme.radius.sm}
               style={{ borderWidth: 2 }} />
           </Pressable>
-          <TouchableOpacity style={styles.relateButton}  onPress={()=> {
-           // setNotificationCount(0)
+          <TouchableOpacity style={styles.relateButton} onPress={() => {
+            setNotificationCount(0)
             router.push('notifications')
-            }}>
-            <Icon name="hexagonIcon" fill={theme.colors.roseLight}/>
+          }}>
+            <Icon name="hexagonIcon" fill={theme.colors.roseLight} />
             {notificationCount > 0 && (
               <View style={styles.pill}>
                 <Text style={styles.pillText}>{notificationCount}</Text>
@@ -189,46 +171,56 @@ const Home = ({ filteredPost }) => {
         </View>
       </View>
 
-
-      <ScrollView  
-        onScroll={handleScroll}
-        scrollEventThrottle={16}>
-        {topics.map(topic => (
-          <View key={topic.id}>
-            <View style={{ alignItems: 'center'}}>
-              <View style={{flexDirection: 'row' }}>
-                <Icon name="hexagonIcon" fill={theme.colors.yellow} />    
-                  <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-                <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+      {loading ? (
+        <View style={{ marginVertical: 30, alignItems: 'center' }}>
+          <Loading />
+        </View>) : (
+        <ScrollView
+          onScroll={handleScroll}
+          scrollEventThrottle={16}>
+          {topics.map(topic => (
+            <View key={topic.id} style={{ alignItems: 'center' }}>
+              <View >
+                <View style={{ flexDirection: 'row' }}>
+                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+                    <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
+                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
                 </View>
               </View>
-            <ScrollView horizontal={true}>
-              {(postsByTopic[topic.id] || []).map(filteredPost => (
-                <TouchableOpacity key={filteredPost.id} onPress={() => {
-                  setSelectedPost(filteredPost);
-                  setModalVisible(true);
-                }}>
-                  <HomePostCard
-                    user= {user}
-                    item={filteredPost}
-                    router={router}
-                  />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ))}
-        {hasMorePosts? ( 
-        <View style={{ marginVertical: 30, alignItems: 'center' }}>
-          <Loading/>
-        </View> ): (
-          <View style={{ marginVertical: 30, alignItems: 'center' }}>
-          <Text >No more posts</Text>
-        </View>
-        )}
-   
-      </ScrollView>
+              <ScrollView horizontal={true}>
+                {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (
+                  postsByTopic[topic.id].map(filteredPost => (
+                    <TouchableOpacity key={filteredPost.id} onPress={() => {
+                      setSelectedPost(filteredPost);
+                      setModalVisible(true);
+                    }}>
+                      <HomePostCard
+                        user={user}
+                        item={filteredPost}
+                        router={router}
+                      />
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text >No posts on this topic yet</Text>
+                  </View>
+                )}
 
+              </ScrollView>
+            </View>
+          ))}
+
+        {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
+                  <Loading />
+                </View>) : (
+                  <View style={{ marginVertical: 30, alignItems: 'center' }}>
+                    <Text >No more posts</Text>
+                  </View>
+                )}
+        </ScrollView>
+      )}
+      
       <PostModal
         isVisible={modalVisible}
         post={selectedPost}
@@ -263,7 +255,7 @@ const styles = StyleSheet.create({
   }
   ,
   relateButton: {
-    marginHorizontal: 10, 
+    marginHorizontal: 10,
     padding: 4,
     margin: 10,
     borderRadius: theme.radius.sm,
