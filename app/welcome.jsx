@@ -66,11 +66,8 @@ const Welcome = () => {
 
 
      <View style={{gap: 8}}>
-      <Image source={iconImg} style={{
-                            height: 208,
-                            width: "100%"
-                        }} />
-      <Text style={styles.punchline}> A place to share... </Text>
+      <Image source={iconImg} style={{ height: 208, width: "100%"}} />
+      <Text style={styles.punchline}> Your place to share stories... </Text>
      </View>
 
 

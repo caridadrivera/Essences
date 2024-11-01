@@ -52,18 +52,12 @@ const Login = () => {
        <View style={styles.container}>
         <BackButton router={router}/>
         <View>
-             <Image source={iconImg} style={{
-                            height: 180,
-                            width: "100%"
-                        }} />
-            </View>
-
+             <Image source={iconImg} style={{ height: 180, width: "100%"}} />
+        </View>
         <View>
           <Text style={styles.welcomeText}>Hey,</Text>
           <Text style={styles.welcomeText}>Good to see you back!</Text>
         </View>
-
-
         {/* form */}
 
         <View style={styles.form}>

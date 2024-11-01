@@ -149,7 +149,11 @@ const Home = ({ filteredPost }) => {
         </View>
 
         <View style={styles.icons}>
-          <Pressable onPress={() => { router.push('userProfile') }} style={styles.buttonStyle} >
+          <Pressable onPress={() => router.push({
+              pathname: '/userProfile',
+              params: { user: user, id: user.id, profile_img: user.profile_image, background_img: user.background_image ,name: user.name, bio: user.bio}
+            }
+            )}style={styles.buttonStyle} >
             <Avatar
               uri={user?.profile_image}
               size={hp(4.3)}

@@ -6,7 +6,6 @@ import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { getUserData } from '../services/userService'
 import AppProviders from '../context/AppProviders'
-import { Slot } from 'expo-router'
 
 LogBox.ignoreLogs(['Warning: TNodeChildrenRenderer', 'Warning: MemoizedTNodeRenderer', 'Warning: TRenderEngineProvider'])
 const _layout = () =>{
@@ -22,30 +21,38 @@ const MainLayout = () => {
   const {setAuth, setUserData} = useAuth();
   const router = useRouter()
 
-  useLayoutEffect(()=>{
-    supabase.auth.onAuthStateChange((_event, session) => {
+  useEffect(()=>{
+    const { data: subscription } =supabase.auth.onAuthStateChange((_event, session) => {
       if(session){
         setAuth(session?.user)
-        updateUser(session?.user, session?.user.email)
-        router.replace('/home')
+        updateUserData(session?.user, session?.user.email)
+        router.push('/home')
 
       }else {
         setAuth(null)
-        router.replace('/welcome')
+        router.push('/welcome')
       }
     })
+
+    console.log(subscription)
+    return () => {
+      if (subscription?.unsubscribe) {
+        subscription.unsubscribe();
+      } else if (typeof subscription === 'function') {
+        subscription();
+      }
+    };
   }, [] )
 
-  const updateUser= async (user, email) =>{
+  const updateUserData = async (user, email) =>{
     let response = await getUserData(user?.id)
     if(response.success) setUserData(response.data)
   }
 
 
   return (
-  
-      <Slot />
-   
+    <Stack
+      screenOptions={{headerShown: false}}/>
   )
 
 }

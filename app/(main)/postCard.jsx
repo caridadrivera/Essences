@@ -86,7 +86,7 @@ const PostCard = ({item, router}) => {
         subtitleStyle={{ fontSize: 14 }}
         left={leftComponent}  
         right={() =>
-          user.id === item.users.id  && ( 
+          user?.id === item.users.id  && ( 
             <TouchableOpacity onPress={handleDelete}>
                 <Icon name="deleteIcon" style={{ color: 'red', margin: 18, size: 4  }}/>
             </TouchableOpacity>

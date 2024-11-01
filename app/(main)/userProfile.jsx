@@ -4,22 +4,18 @@ import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
 import { supabase } from '../../lib/supabase'
 import Avatar from '../../components/Avatar'
-import BackButton from '../../components/BackButton'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams} from 'expo-router'
 import { ScrollView } from 'react-native'
-import { useAuth } from '../../context/AuthContext'
-import AddButton from '../../components/AddButton'
 import Icon from '../../assets/icons'
 import PostModal from './postModal'
 import { Image } from 'expo-image'
 import { getUserImage } from '../../services/userProfileImage'
 import NewPost from './newPost'
-import RenderHTML from 'react-native-render-html'
-import { wp } from '../../helpers/common'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import PostCard from './postCard'
 import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
+import { useAuth } from '../../context/AuthContext'
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
@@ -33,16 +29,16 @@ const userProfile = () => {
   const [selectedTopic, setSelectedTopic] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
+  const { id, profile_img, background_img, name, bio} = useLocalSearchParams()
 
-
+ 
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
     };
-    console.log(user, 'user obj from userprofile')
 
     fetchData();
-    setbgImage(getUserImage(user.background_image))
+    setbgImage(getUserImage(background_img))
 
     let postChannel;
     if (postModalVisible) {
@@ -51,8 +47,6 @@ const userProfile = () => {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
         .subscribe()
     }
-
-
 
     return () => {
       if (postChannel) {
@@ -182,14 +176,14 @@ const userProfile = () => {
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar
-            uri={user?.profile_image}
+            uri={profile_img}
             style={styles.profilePic} />
         </View>
       </View>
 
       <View style={{ alignItems: 'center' }}>
-        <Text style={{ fontWeight: 'bold' }}>{user.name}</Text>
-        <Text style={{ fontStyle: 'italic' }}>{user.bio}</Text>
+        <Text style={{ fontWeight: 'bold' }}>{name}</Text>
+        <Text style={{ fontStyle: 'italic' }}>{bio}</Text>
         <Text style={{ fontWeight: 'bold' }}>__________________</Text>
       </View>
 
