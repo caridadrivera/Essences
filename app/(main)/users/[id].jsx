@@ -166,19 +166,25 @@ const Profile = () => {
             <View style={{ alignItems: 'center' }}>
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
               <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-              
+         
             </View>
             <ScrollView horizontal={true}>
-              {(postsByTopic[topic.id] || []).map(filteredPost => (           
+              {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? ( 
+                postsByTopic[topic.id] || []).map(filteredPost => (           
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
                   setModalVisible(true);
                 }}>
                   <PostCard
                     item={filteredPost}       
-                    otherUser={filteredPost.users} />
+                    otherUser={filteredPost.users} 
+                  />
                 </TouchableOpacity>
-              ))}
+              )) : (
+              <View style={{ alignItems: 'center', marginLeft: 35 }}>
+                <Text >No posts on this topic yet</Text>
+              </View>
+              )}
             </ScrollView>
           </View>
         ))}

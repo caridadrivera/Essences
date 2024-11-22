@@ -207,7 +207,8 @@ const userProfile = () => {
               </View>
             </View>
             <ScrollView horizontal={true} >
-              {(postsByTopic[topic.id] || []).map(filteredPost => (
+
+              {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);
                   setModalVisible(true);
@@ -216,7 +217,11 @@ const userProfile = () => {
                     item={filteredPost}
                     router={router} />
                 </TouchableOpacity>
-              ))}
+              )):(
+                <View style={{ alignItems: 'center', marginLeft: 35 }}>
+                <Text >No posts on this topic yet</Text>
+              </View>
+              )}
 
             </ScrollView>
           </View>

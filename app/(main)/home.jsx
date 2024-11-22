@@ -183,13 +183,12 @@ const Home = ({ filteredPost }) => {
           onScroll={handleScroll}
           scrollEventThrottle={16}>
           {topics.map(topic => (
-            <View key={topic.id} style={{ alignItems: 'center' }}>
-              <View >
-                <View style={{ flexDirection: 'row' }}>
+            <View key={topic.id} >
+              <View  style={{ alignItems: 'center', marginTop: 30 }}>
                   <Icon name="hexagonIcon" fill={theme.colors.yellow} />
                     <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                   <Icon name="hexagonIcon" fill={theme.colors.yellow} />
-                </View>
+            
               </View>
               <ScrollView horizontal={true}>
                 {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (
@@ -206,7 +205,7 @@ const Home = ({ filteredPost }) => {
                     </TouchableOpacity>
                   ))
                 ) : (
-                  <View style={{ alignItems: 'center' }}>
+                  <View style={{ alignItems: 'center', marginLeft: 35 }}>
                     <Text >No posts on this topic yet</Text>
                   </View>
                 )}
