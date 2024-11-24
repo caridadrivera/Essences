@@ -9,6 +9,7 @@ import { theme } from '../../constants/theme'
 import { Alert } from 'react-native'
 import { supabase } from '../../lib/supabase'
 import { createOrUpdatePost } from '../../services/postService'
+import { analyzeText } from '../../services/perspecticeService'
 
 const NewPost = ({ isVisible, user, topicId, onClose }) => {
 
@@ -16,17 +17,57 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
   const editorRef = useRef("")
   const router = useRouter()
   const [loading, setLoading]  = useState(false)
+  const [toxicityScore, setToxicityScore] = useState(null);
 
+  
+
+//on submit check the level of toxicity. if high. warn user that post violates terms agreement. please be kind 
+//add toxic flag (yes/no) to post table as a column
+//add isReported flag (yes/no)
+// if post toxic, post but with warning, have the flag as true
+//if toxic post is then reported, post should be taken down 
   const onSubmit = async () =>{
     if(!bodyRef.current ){
       Alert.alert("Post", "Your post is empty :(")
       return
     }
-    const data = {
-      body: bodyRef.current,
-      userId: user?.id,
-      topicId: topicId,
+
+    try {
+      const score = await analyzeText(bodyRef.current);
+      setToxicityScore(score);
+
+      if (score > 0.7) {
+        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: true
+        }
+        processPost(data)
+
+      } else {
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: false
+        }
+        processPost(data)
+
+
+      }
+
+     
+    } catch (error) {
+      Alert.alert('Error', 'Unable to analyze the content.');
     }
+
+   
+
+  }
+
+  const processPost = async (data) => {
 
     setLoading(true)
     let response = await createOrUpdatePost(data)
@@ -39,7 +80,6 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
     }else {
       Alert.alert('Post', response.msg)
     }
-
   }
 
 

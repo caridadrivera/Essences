@@ -177,13 +177,13 @@ const Profile = () => {
                 }}>
                   <PostCard
                     item={filteredPost}       
-                    otherUser={filteredPost.users} 
+                    router={router}
                   />
                 </TouchableOpacity>
               )) : (
-              <View style={{ alignItems: 'center', marginLeft: 35 }}>
-                <Text >No posts on this topic yet</Text>
-              </View>
+                  <View style={{ alignItems: 'center', marginLeft: 35 }}>
+                    <Text >No posts on this topic yet</Text>
+                  </View>
               )}
             </ScrollView>
           </View>

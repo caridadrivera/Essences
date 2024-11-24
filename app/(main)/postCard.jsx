@@ -1,28 +1,42 @@
-import { StyleSheet, Text, View, TouchableOpacity} from 'react-native'
-import { Card } from 'react-native-paper'
+import { StyleSheet, Text, View, TouchableOpacity, Modal, Pressable, Dimensions} from 'react-native'
+import { Card, Provider } from 'react-native-paper'
 import React from 'react'
 import Avatar from '../../components/Avatar'
 import RenderHTML from 'react-native-render-html'
 import { wp } from '../../helpers/common'
 import Icon from '../../assets/icons'
 import { theme } from '../../constants/theme'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { createPostLike, removePostLike } from '../../services/postService'
 import { Alert } from 'react-native'
 import { supabase } from '../../lib/supabase'
+import { Provider as PaperProvider, Menu, IconButton } from 'react-native-paper';
+
+
+
+
+//if the post.user id is the same as the current user, have delete available
+//if not, have flag content available
+
 
 const PostCard = ({item, router}) => {
    
  const {user} = useAuth()
-   const leftComponent = ({ size }) => (
-     <Avatar 
-       uri={item?.users.profile_image} 
-       style={{ width: size, height: size, borderRadius: size / 2 }} />
-      );
+   
+ const leftComponent = ({ size }) => (
+      <Avatar 
+        uri={item?.users.profile_image} 
+        style={{ width: size, height: size, borderRadius: size / 2 }} />
+        );
+  const [likes, setLikes] = useState([]);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const iconRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
-    
-   const [likes, setLikes] = useState([]);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
+
+
 
 
 
@@ -59,8 +73,7 @@ const PostCard = ({item, router}) => {
 
     const liked = likes.some(like => like.userId == user?.id ? true : false );
 
-    const [showDeleteButton, setShowDeleteButton] = useState(false);
-
+   
     const handleDelete = async () => {
       try {
         const { error } = await supabase
@@ -76,23 +89,90 @@ const PostCard = ({item, router}) => {
         Alert.alert('Error', error.message);
       }
     }
+    const handleFlag = () =>{
+      
+    }
+
+   
+    const openMenu = () => {
+      console.log("Menu opened");
+      iconRef.current.measure((fx, fy, width, height, px, py) => {
+        setMenuPosition({ top: py + height, left: px });
+        setMenuVisible(true);
+      });
+    };
+    const closeMenu = () => {
+      console.log("Menu closed");
+      setMenuVisible(false);
+    };
+
+ 
+
+
 
   return (
-  
-    <Card style={{ margin: 20, width: 300 }} key={item.id}>
+  <PaperProvider>
+     <Card style={{ margin: 20, width: 300 }} key={item.id}>
       <Card.Title
         subtitle={item.users? item.users.name : item.name}
         titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
         subtitleStyle={{ fontSize: 14 }}
         left={leftComponent}  
         right={() =>
-          user?.id === item.users.id  && ( 
-            <TouchableOpacity onPress={handleDelete}>
-                <Icon name="deleteIcon" style={{ color: 'red', margin: 18, size: 4  }}/>
+          user?.id === item.users.id && (
+            <TouchableOpacity 
+              ref={iconRef}
+              onPress={openMenu} 
+              style={styles.iconButton}>
+              <Text style={styles.icon}>⋮</Text>
             </TouchableOpacity>
-          ) 
+          )
         }
+
       />
+
+
+      {/* Dropdown Menu */}
+      {menuVisible && (
+        <Modal
+          transparent={true}
+          animationType="fade"
+          visible={menuVisible}
+          onRequestClose={closeMenu}
+        >
+          <Pressable style={styles.overlay} onPress={closeMenu}>
+          <View
+              style={[
+                styles.menu,
+                {
+                  top: menuPosition.top,
+                  left: menuPosition.left,
+                },
+              ]}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  closeMenu();
+                  handleDelete();
+                }}
+                style={styles.menuItem}
+              >
+                <Text style={styles.menuText}>Delete</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  closeMenu();
+                  handleFlag();
+                }}
+                style={styles.menuItem}
+              >
+                <Text style={styles.menuText}>Flag</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
 
       <Card.Content
         style={{
@@ -128,9 +208,45 @@ const PostCard = ({item, router}) => {
 
       </Card.Actions>
     </Card>
+  </PaperProvider>
+   
   )
 }
 
 export default PostCard
-
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 10,
+  },
+  iconButton: {
+    padding: 10,
+  },
+  icon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'red',
+  },
+  overlay: {
+    flex: 1,
+  },
+  menu: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    paddingVertical: 10,
+  },
+  menuText: {
+    fontSize: 16,
+    color: '#333',
+  },
+});

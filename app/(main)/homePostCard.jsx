@@ -80,18 +80,10 @@ const HomePostCard = ({ user, item, router}) => {
             }
             )}>
 
-              <Avatar uri={item.users.profile_image}  />
+              <Avatar uri={item.users.profile_image} />
             </Pressable>
           )}
-          right={() =>
-            user?.id === !item.users.id  && ( 
-              <TouchableOpacity onPress={handleDelete}>
-                  <Icon name="deleteIcon" style={{ color: 'red', margin: 18, size: 4  }}/>
-              </TouchableOpacity>
-            ) 
-          }
         />
-
         <Card.Content
           style={{
             margin: 10,
@@ -129,6 +121,18 @@ const HomePostCard = ({ user, item, router}) => {
 };
 
 const styles = StyleSheet.create({
+    container: {
+        maxHeight: 50,
+        overflow: 'hidden',
+    },
+    content: {
+        flex: 1,
+    },
+    text: {
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    
 });
 
 export default HomePostCard;
