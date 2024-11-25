@@ -29,16 +29,16 @@ const Welcome = () => {
     setModalVisible(true);
   };
 
-const handleAccept = () => {
+  const handleAccept = () => {
     setModalVisible(false);
 
     handleRegistration()
-};
+  };
 
-const handleDecline = () => {
+  const handleDecline = () => {
     setModalVisible(false);
     Alert.alert("Registration Failed", "You must accept the EULA to register.");
-};
+  };
 
 
 

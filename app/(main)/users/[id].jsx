@@ -32,7 +32,6 @@ const Profile = () => {
 
   useEffect(() => {
     fetchData();
-
     setbgImage(getUserImage(background_img))
   }, []);
 
@@ -40,8 +39,6 @@ const Profile = () => {
   const fetchData = async () => {
     await fetchTopics();
   };
-
-
 
   const fetchPosts = async (topic) => {
     const { data, error } = await supabase
@@ -151,7 +148,7 @@ const Profile = () => {
       </View>
 
 
-      <View style={{ alignItems: 'center', marginBottom: 18}}>
+      <View style={{ alignItems: 'center', marginBottom: 10}}>
         <Text style={{fontWeight: 'bold' }}>{user_name}</Text>
         <Text style={{fontStyle: 'italic' }}>{user_bio}</Text>
         <Text style={{fontWeight: 'bold' }}>__________________</Text>
@@ -171,15 +168,12 @@ const Profile = () => {
             <ScrollView horizontal={true}>
               {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? ( 
                 postsByTopic[topic.id] || []).map(filteredPost => (           
-                <TouchableOpacity key={filteredPost.id} onPress={() => {
-                  setSelectedPost(filteredPost);
-                  setModalVisible(true);
-                }}>
+                <View key={filteredPost.id}>
                   <PostCard
                     item={filteredPost}       
                     router={router}
                   />
-                </TouchableOpacity>
+                </View>
               )) : (
                   <View style={{ alignItems: 'center', marginLeft: 35 }}>
                     <Text >No posts on this topic yet</Text>

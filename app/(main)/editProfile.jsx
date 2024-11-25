@@ -16,7 +16,7 @@ import { updateUserData } from '../../services/userService'
 import * as imagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 
-const EditProfile = () => { 
+const EditProfile = () => {
     const { user: currentUser, setUserData } = useAuth()
     const [user, setUser] = useState({
         name: '',
@@ -51,7 +51,7 @@ const EditProfile = () => {
             setUser({ ...user, profile_image: result.assets[0] })
         }
     }
-  
+
     const pickBackgroundImage = async () => {
         let result = await imagePicker.launchImageLibraryAsync({
             mediaTypes: imagePicker.MediaTypeOptions.Images,
@@ -61,7 +61,7 @@ const EditProfile = () => {
         })
 
         if (!result.canceled) {
-          setUser({ ...user, background_image: result.assets[0] })
+            setUser({ ...user, background_image: result.assets[0] })
         }
     }
 
@@ -102,27 +102,28 @@ const EditProfile = () => {
 
     return (
         <ScreenWrapper>
-            <View style={styles.backgroundImgContainer}>
-                 <Pressable style={styles.editBackground} onPress={pickBackgroundImage}>
-                        <Text style={{fontWeight: 'bold'}}>Update </Text>
-                    </Pressable>
-                <ScrollView>
-                   
+            <View style={styles.profilePicContainer}>
+                <View style={styles.imageWrapper}>
                     <Image
                         source={backgroundImgSrc}
-                        style={{
-                            height: 228,
-                            width: "100%"
-                        }} />
-                </ScrollView>
+                        style={{ height: 228, width: "100%" }}
+                    />
+                    <Pressable
+                        style={[styles.iconContainer, { top: 10, right: 10 }]}
+                        onPress={pickBackgroundImage}>
+                        <Icon name="uploadImageIcon" />
+                    </Pressable>
+                </View>
                 <BackButton router={router} />
             </View>
+
             <View style={styles.profilePicContainer}>
                 <Image
                     source={profileImgSrc}
                     style={styles.profilePic} />
-                <Pressable style={styles.editIcon} onPress={pickProfileImage}>
-                    <Icon name="uploadImageIcon" strokeWidth={2.5} size={20} />
+                <Pressable style={styles.editIcon} 
+                    onPress={pickProfileImage}>
+                    <Icon name="uploadImageIcon"  />
                 </Pressable>
             </View>
 
@@ -149,12 +150,10 @@ const EditProfile = () => {
 export default EditProfile
 
 const styles = StyleSheet.create({
-
-    container: {
-        flex: 1,
-        gap: 45,
-        paddingHorizontal: wp(5)
+    backgroundImgContainer: {
+        position: 'relative', // Required for absolute positioning to work
     },
+
     welcomeText: {
         fontSize: hp(4),
         fontWeight: theme.fonts.bold,
@@ -170,32 +169,45 @@ const styles = StyleSheet.create({
         borderWidth: 0.4
     }
     ,
-    backgroundImgContainer: {
-        width: '100%'
+    // profilePicContainer: {
+    //     alignItems: 'center'
+    // },
+    imageWrapper: {
+        position: 'relative', 
+        height: 228,
+        width: '100%',
+    },
+    iconContainer: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 10,
+        borderRadius: 5,
+        zIndex: 1, 
     },
     profilePicContainer: {
-        alignItems: 'center'
+        position: 'relative', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
     },
     profilePic: {
-        height: 155,
-        width: 155,
+        height: 150, 
+        width: 150, 
+        borderRadius: 75, 
         borderRadius: 999,
         borderBlockColor: theme.colors.primaryDark,
         borderWidth: 2,
-        marginTop: -140
+        marginTop: -100
     },
     editIcon: {
-
-        botton: 0,
-        padding: 7,
-        borderRadius: 50,
-        backgroundColor: 'white',
-        shadowColor: theme.colors.textLight,
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.4,
-        shadowRadius: 5,
-        elevation: 7
+        position: 'absolute',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+        padding: 8,
+        borderRadius: 20, 
+        zIndex: 1, 
     },
+
     editBackground: {
         alignItems: 'center',
         fontSize: 18,

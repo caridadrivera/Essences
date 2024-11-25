@@ -207,7 +207,6 @@ const userProfile = () => {
               </View>
             </View>
             <ScrollView horizontal={true} >
-
               {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (postsByTopic[topic.id] || []).map(filteredPost => (
                 <TouchableOpacity key={filteredPost.id} onPress={() => {
                   setSelectedPost(filteredPost);

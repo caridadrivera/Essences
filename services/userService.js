@@ -13,7 +13,6 @@ export const getUserData = async (userId) =>{
       return {success: true, data}
     }
     catch(error){
-        console.log('got error:', error)
         return {success: false, msg: error?.message}
     }
 }

@@ -193,16 +193,13 @@ const Home = ({ filteredPost }) => {
               <ScrollView horizontal={true}>
                 {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (
                   postsByTopic[topic.id].map(filteredPost => (
-                    <TouchableOpacity key={filteredPost.id} onPress={() => {
-                      setSelectedPost(filteredPost);
-                      setModalVisible(true);
-                    }}>
+                    <View key={filteredPost.id}>
                       <HomePostCard
                         user={user}
                         item={filteredPost}
                         router={router}
                       />
-                    </TouchableOpacity>
+                    </View>
                   ))
                 ) : (
                   <View style={{ alignItems: 'center', marginLeft: 35 }}>
