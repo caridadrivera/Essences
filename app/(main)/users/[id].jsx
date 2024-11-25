@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../../constants/theme'
 import { supabase } from '../../../lib/supabase'
@@ -17,7 +17,6 @@ import Loading from '../../../components/Loading'
 import Icon from '../../../assets/icons'
 import { Alert } from 'react-native'
 
-
 const Profile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
@@ -26,7 +25,11 @@ const Profile = () => {
   const [bgImage, setbgImage] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
-
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const iconRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const {user} = useAuth();
+  
   const router = useRouter()
   const { id, profile_img, background_img, user_name, user_bio } = useLocalSearchParams()
 
@@ -91,7 +94,7 @@ const Profile = () => {
     const contentHeight = event.nativeEvent.contentSize.height;
     const screenHeight = Dimensions.get('window').height;
 
-    const threshold = 100;
+    const threshold = 5;
 
     if (y + screenHeight + threshold >= contentHeight) {
       fetchMorePosts()
@@ -124,6 +127,36 @@ const Profile = () => {
     setPostsByTopic(postsByTopic);
   }
 
+  const openMenu = () => {
+    iconRef.current.measure((x, y, width, height, pageX, pageY) => {
+      const screen = Dimensions.get('window');
+      const menuWidth = 150;
+      const menuHeight = 50; 
+
+      let top = pageY + height;
+      let left = pageX;
+
+     if (left + menuWidth > screen.width) {
+        left = screen.width - menuWidth - 10;
+      }
+      if (top + menuHeight > screen.height) {
+        top = screen.height - menuHeight - 10; 
+      }
+
+      setMenuPosition({ top, left });
+      setMenuVisible(true);
+    });
+  };
+
+    
+  const closeMenu = () => {
+    setMenuVisible(false);
+  };
+
+  const blockUser = () =>{
+
+  }
+
 
 
   return (
@@ -145,16 +178,53 @@ const Profile = () => {
             uri={profile_img}
             style={styles.profilePic} />
         </View>
+        <TouchableOpacity
+              ref={iconRef}
+              onPress={openMenu}
+              style={styles.iconButton}>
+              <Text style={styles.icon}>⋮</Text>
+          </TouchableOpacity>
+      <View>
+      {menuVisible && (
+          <Modal
+            transparent={true}
+            animationType="fade"
+            visible={menuVisible}
+            onRequestClose={closeMenu}
+          >
+            <Pressable onPress={closeMenu}>
+              <View
+                style={[
+                  styles.menu,
+                  {
+                    top: menuPosition.top,
+                    left: menuPosition.left,
+                  },
+                ]}
+              >
+
+                <TouchableOpacity
+                  onPress={() => {
+                    closeMenu();
+                    blockUser();
+                  }}
+                  style={styles.menuItem}
+                >
+                  <Text style={styles.menuText}>Block {user_name}</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Modal>
+        )}
+     
       </View>
-
-
-      <View style={{ alignItems: 'center', marginBottom: 10}}>
+      
+      </View>
+      <View style={{ alignItems: 'center', marginBottom: 5}}>
         <Text style={{fontWeight: 'bold' }}>{user_name}</Text>
         <Text style={{fontStyle: 'italic' }}>{user_bio}</Text>
         <Text style={{fontWeight: 'bold' }}>__________________</Text>
       </View>
-
-
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
@@ -191,12 +261,6 @@ const Profile = () => {
           </View>
         )}
       </ScrollView>
-      <PostModal
-        isVisible={modalVisible}
-        post={selectedPost}
-        onClose={() => setModalVisible(false)}
-      />
-
     </ScreenWrapper>
   )
 }
@@ -249,5 +313,39 @@ const styles = StyleSheet.create({
     marginBottom: 18,
 
   },
+  iconButton: {
+    left: 188
+  },
+  icon: {
+    fontSize: 28,
+    fontWeight: 'bolder',
+    color: 'blue',
+  },
+  overlay: {
+    flex: 1,
+  },
+  menu: {
+    width: 120,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 5,
+    shadowColor: '#000',
+    paddingRight: 10,
+    marginLeft: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+     alignSelf: 'flex-start'
+  },
+  menuItem: {
+    paddingVertical: 5,
+  },
+  menuText: {
+    fontSize: 12,
+    color: 'red',
+  },
+  
+  
 
 })

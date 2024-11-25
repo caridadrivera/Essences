@@ -34,7 +34,6 @@ const MainLayout = () => {
       }
     })
 
-    console.log(subscription)
     return () => {
       if (subscription?.unsubscribe) {
         subscription.unsubscribe();

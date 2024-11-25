@@ -26,8 +26,6 @@ const PostCard = ({ item, router }) => {
   const iconRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const [showDeleteButton, setShowDeleteButton] = useState(false);
-
   useEffect(() => {
     setLikes(item?.postLikes)
   }, [])
@@ -55,12 +53,9 @@ const PostCard = ({ item, router }) => {
         Alert.alert('Post', 'Something went wrong')
       }
     }
-
-
   }
 
   const liked = likes.some(like => like.userId == user?.id ? true : false);
-
 
   const handleDelete = async () => {
     try {
@@ -72,14 +67,28 @@ const PostCard = ({ item, router }) => {
       if (error) throw error;
 
       router.push('userProfile')
-      setShowDeleteButton(false);
+
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   }
-  const handleFlag = () => {
 
-  }
+  const handleFlag = async () => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ isFlagged: true }) 
+        .match({ id: item.id, userId: user.id }); 
+  
+      if (error) throw error;
+      Alert.alert('Flag', 'This post has been flagged');
+      
+      router.push('userProfile'); 
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+  
 
 
   const openMenu = () => {

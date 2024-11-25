@@ -153,7 +153,6 @@ const styles = StyleSheet.create({
     backgroundImgContainer: {
         position: 'relative', // Required for absolute positioning to work
     },
-
     welcomeText: {
         fontSize: hp(4),
         fontWeight: theme.fonts.bold,
@@ -169,9 +168,6 @@ const styles = StyleSheet.create({
         borderWidth: 0.4
     }
     ,
-    // profilePicContainer: {
-    //     alignItems: 'center'
-    // },
     imageWrapper: {
         position: 'relative', 
         height: 228,

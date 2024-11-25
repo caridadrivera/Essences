@@ -43,7 +43,6 @@ export const createNotification = async (notification) => {
       return {success: true, data: data}
     }
     catch(error){
-        console.log('got error:', error)
         return {success: false, msg: error?.message}
     }
 }

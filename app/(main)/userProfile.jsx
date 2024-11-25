@@ -53,10 +53,7 @@ const userProfile = () => {
         supabase.removeChannel(postChannel)
       }
 
-     
     }
-
-
   }, [postModalVisible]);
 
   const handlePostEvent = async (payload) => {
@@ -105,7 +102,6 @@ const userProfile = () => {
       .select('id, title');
 
     if (error) {
-      console.error('Error fetching topics:', error);
       return;
     }
 
@@ -181,9 +177,9 @@ const userProfile = () => {
         </View>
       </View>
 
-      <View style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: 'center'}}>
         <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-        <Text style={{ fontStyle: 'italic' }}>{bio}</Text>
+        <Text style={{ fontStyle: 'italic'}}>{bio}</Text>
         <Text style={{ fontWeight: 'bold' }}>__________________</Text>
       </View>
 
@@ -192,7 +188,7 @@ const userProfile = () => {
         scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id} >
-            <View style={{ alignItems: 'center', marginTop: 30 }}>
+            <View style={{ alignItems: 'center', marginTop: 20 }}>
               <Icon name="hexagonIcon" fill={theme.colors.yellow} />
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
@@ -235,12 +231,6 @@ const userProfile = () => {
         )}
 
       </ScrollView>
-
-      <PostModal
-        isVisible={modalVisible}
-        post={selectedPost}
-        onClose={() => setModalVisible(false)}
-      />
 
       <NewPost
         isVisible={postModalVisible}
@@ -293,10 +283,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 7
   },
-  postsContainer: {
-    paddingTop: 28,
-    marginTop: 10
-  },
+ 
   header: {
     flexDirection: 'column',
     alignItems: 'center',

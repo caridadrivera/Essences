@@ -11,6 +11,7 @@ import { BorderFullIcon } from '@hugeicons/react-native-pro';
 import { createPostLike, removePostLike } from '../../services/postService';
 import { Alert } from 'react-native';
 import { createNotification } from '../../services/notificationService';
+import { supabase } from '../../lib/supabase';
 
 const HomePostCard = ({ user, item, router}) => {
     
@@ -72,6 +73,23 @@ const HomePostCard = ({ user, item, router}) => {
   const closeMenu = () => {
     setMenuVisible(false);
   };
+
+  const handleFlag = async () => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ isFlagged: true }) 
+        .match({ id: item.id, userId: user.id }); 
+  
+      if (error) throw error;
+      Alert.alert('Flag', 'This post has been flagged');
+      
+      router.push('home'); 
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+  
 
   const liked = likes.some(like => like.userId == user?.id ? true : false)
 
