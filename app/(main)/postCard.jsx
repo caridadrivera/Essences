@@ -14,7 +14,7 @@ import { supabase } from '../../lib/supabase'
 import { Provider as PaperProvider, Menu, IconButton } from 'react-native-paper';
 
 
-const PostCard = ({ item, router }) => {
+const PostCard = ({ item, router, setIsPostDeleted }) => {
 
   const { user } = useAuth()
 
@@ -25,6 +25,8 @@ const PostCard = ({ item, router }) => {
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
+
+ 
 
   useEffect(() => {
     setLikes(item?.postLikes)
@@ -66,7 +68,8 @@ const PostCard = ({ item, router }) => {
 
       if (error) throw error;
 
-      router.push('userProfile')
+      setIsPostDeleted(true)
+
 
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -152,15 +155,20 @@ const PostCard = ({ item, router }) => {
                   <Text style={styles.menuText}>Delete</Text>
                 </TouchableOpacity>
                 )}
-                <TouchableOpacity
-                  onPress={() => {
-                    closeMenu();
-                    handleFlag();
-                  }}
-                  style={styles.menuItem}
-                >
-                  <Text style={styles.menuText}>Flag</Text>
-                </TouchableOpacity>
+
+                {user?.id !== item.users.id && 
+                   <TouchableOpacity
+                   onPress={() => {
+                     closeMenu();
+                     handleFlag();
+                   }}
+                   style={styles.menuItem}
+                 >
+                   <Text style={styles.menuText}>Flag</Text>
+                 </TouchableOpacity>
+                
+                }
+               
               </View>
             </Pressable>
           </Modal>
@@ -217,7 +225,7 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'red',
+    color: 'black',
   },
   overlay: {
     flex: 1,

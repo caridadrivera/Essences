@@ -66,6 +66,21 @@ const Home = ({ filteredPost }) => {
 
 
   const fetchPosts = async (topic, user) => {
+
+    const { data: blockedUsers, error: blockError } = await supabase
+      .from('blocked_users')
+      .select('blocked_user_id')
+      .eq('user_id', user.id);
+
+    if (blockError) {
+      console.error('Error fetching blocked users:', blockError);
+      return [];
+    }
+
+    const blockedIds = blockedUsers.map(user => user.blocked_user_id);
+    const exclusionIds = [...blockedIds, user.id];
+
+    
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -80,7 +95,7 @@ const Home = ({ filteredPost }) => {
         postLikes(*)
       `)
       .eq('topicId', topic.id)
-      .not('userId', 'eq', user.id)
+      .not('userId', 'in', `(${exclusionIds.join(',')})`)
       .order('created_at', { ascending: false })
 
 

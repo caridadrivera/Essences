@@ -16,6 +16,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper'
 import Loading from '../../../components/Loading'
 import Icon from '../../../assets/icons'
 import { Alert } from 'react-native'
+import { err } from 'react-native-svg'
 
 const Profile = () => {
   const [topics, setTopics] = useState([]);
@@ -153,9 +154,22 @@ const Profile = () => {
     setMenuVisible(false);
   };
 
-  const blockUser = () =>{
+  const blockUser = async () => {
 
-  }
+    const { data, error } = await supabase
+      .from('blocked_users')
+      .insert([{ user_id: user.id, blocked_user_id: id }]);
+  
+    if (error) {
+      Alert.alert('Error blocking user', error);
+      return false;
+    }
+  
+    Alert.alert('User blocked');
+    router.push('home')
+    return true;
+  };
+  
 
 
 

@@ -31,6 +31,7 @@ const userProfile = () => {
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const { id, profile_img, background_img, name, bio} = useLocalSearchParams()
 
+  const [isPostDeleted, setIsPostDeleted] = useState(false)
  
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +55,7 @@ const userProfile = () => {
       }
 
     }
-  }, [postModalVisible]);
+  }, [postModalVisible, isPostDeleted]);
 
   const handlePostEvent = async (payload) => {
     if ((payload.eventType === 'INSERT') && payload?.new?.id) {
@@ -210,7 +211,8 @@ const userProfile = () => {
                 }}>
                   <PostCard
                     item={filteredPost}
-                    router={router} />
+                    router={router}
+                    setIsPostDeleted={setIsPostDeleted} />
                 </TouchableOpacity>
               )):(
                    <View style={{ alignItems: 'center', marginLeft: 35 }}>
