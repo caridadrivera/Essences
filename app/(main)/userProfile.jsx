@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
 import { supabase } from '../../lib/supabase'
@@ -32,7 +32,10 @@ const userProfile = () => {
   const { id, profile_img, background_img, name, bio} = useLocalSearchParams()
 
   const [isPostDeleted, setIsPostDeleted] = useState(false)
- 
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const iconRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  
   useEffect(() => {
     const fetchData = async () => {
       await fetchTopics();
@@ -133,6 +136,36 @@ const userProfile = () => {
   };
 
 
+  const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
+const openMenu = () => {
+  iconRef.current.measure((fx, fy, width, height, px, py) => {
+
+    let top = py + height;
+    let left = px;
+
+    const menuWidth = 120;
+    const menuHeight = 50; 
+    if (left + menuWidth > screenWidth) {
+      left = screenWidth - menuWidth - 10; 
+    }
+    if (top + menuHeight > screenHeight) {
+      top = screenHeight - menuHeight - 10; 
+    }
+
+    setMenuPosition({ top, left });
+    setMenuVisible(true);
+  });
+};
+
+
+    
+  const closeMenu = () => {
+    setMenuVisible(false);
+  };
+
+
   const fetchMorePosts = async () => {
     const { data, error } = await supabase
       .from('topics')
@@ -157,6 +190,10 @@ const userProfile = () => {
     setPostsByTopic(fetchedPostsByTopic);
   }
 
+  const navigateToBlockedList = () =>{
+    router.push('blockedUsers')
+  }
+
   return (
     <ScreenWrapper >
       <View style={styles.header}>
@@ -176,6 +213,49 @@ const userProfile = () => {
             uri={profile_img}
             style={styles.profilePic} />
         </View>
+      
+        <View>
+    <TouchableOpacity
+      ref={iconRef}
+      onPress={menuVisible ? closeMenu : openMenu}
+      style={styles.iconButton}>
+      <Text style={styles.icon}>⋮</Text>
+    </TouchableOpacity>
+    {menuVisible && (
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={menuVisible}
+        onRequestClose={closeMenu}
+      >
+        <Pressable onPress={closeMenu} style={{ flex: 1 }}>
+          <View>
+            <View
+              style={[
+                styles.menu,
+                {
+                  position: 'absolute',
+                  top: menuPosition.top,
+                  left: menuPosition.left,
+                },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  closeMenu();
+                  navigateToBlockedList();
+                }}
+              >
+                <Text style={styles.menuText}>Blocked List</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+    )}
+  </View>
+
       </View>
 
       <View style={{ alignItems: 'center'}}>
@@ -292,6 +372,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 18,
 
+  },
+  menu: {
+    position: 'absolute',
+    width: 120,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    padding: 10,
+  },
+  
+
+  menuText: {
+    fontSize: 12,
+    color: 'red',
+  },
+  iconButton: {
+    left: 188
+  },
+  icon: {
+    fontSize: 28,
+    fontWeight: 'bolder',
+    color: 'blue',
   },
 
 })
