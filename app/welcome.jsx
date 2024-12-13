@@ -1,5 +1,5 @@
 import { View, StyleSheet, Text , Pressable, Modal, Alert, ScrollView, Button} from 'react-native'
-import React , {useState, useRef} from 'react'
+import React , {useState, useRef, useEffect} from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { StatusBar } from 'expo-status-bar'
 import {hp,wp} from '../helpers/common'
@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router'
 import {supabase} from  '../lib/supabase'
 import { getUserImage } from '../services/userProfileImage'
 import { Image } from 'expo-image'
+import { signUp } from '../services/api'
 
 const Welcome = () => {
 
@@ -22,7 +23,7 @@ const Welcome = () => {
   const passwordRef = useRef("")
   const [loading, setLoading ] = useState(false)  
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [error, setError] = useState(null);
 
 
   const handleSubmit = () => {
@@ -48,31 +49,26 @@ const Welcome = () => {
     if(!emailRef.current || !passwordRef.current || !nameRef.current){
       Alert.alert('Sign Up', "All fields must be filled")
       return
-    } else {
-      
-    }
+    } 
 
     let name = nameRef.current.trim()
     let email = emailRef.current.trim()
     let password = passwordRef.current.trim()
 
     setLoading(true)
+    setError(null);
 
-    const {data: {session}, error} = await supabase.auth.signUp({
-      email, 
-      password,
-      options: {
-        data: {
-          name
-        }
-      }
-    })
-    setLoading(false)
 
-    if(error){
-      Alert.alert('singup', error.message)
+    try {
+      const response = await signUp(name, email, password);
+
+      setLoading(false);
+
+      router.push('home');
+    } catch (err) {
+      setLoading(false);
+      setError(err.response?.data?.error || 'An error occurred during login.');
     }
-
 
   }
 

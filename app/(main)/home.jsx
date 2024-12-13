@@ -19,6 +19,7 @@ import { getUserImage } from '../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { fetchNotifications } from '../../services/notificationService'
 import { useNotification } from '../../context/NotificationContext'
+import { getPosts, getTopics } from '../../services/api'
 
 
 const Home = ({ filteredPost }) => {
@@ -44,68 +45,64 @@ const Home = ({ filteredPost }) => {
   };
 
   const fetchTopics = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title')
+    // const { data, error } = await supabase
+    //   .from('topics')
+    //   .select('id, title')
 
 
-    if (error) {
-      console.error('Error fetching topics:', error);
-      return;
-    }
+    // if (error) {
+    //   console.error('Error fetching topics:', error);
+    //   return;
+    // }
 
-    setTopics(data);
+    const data = await getTopics();
+
+
+
+      setTopics(data);
     const fetchedPostsByTopic = {};
+
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic, user);
       fetchedPostsByTopic[topic.id] = topicPosts;
     }
 
-    setPostsByTopic(fetchedPostsByTopic);
+      setPostsByTopic(fetchedPostsByTopic);
   };
 
 
   const fetchPosts = async (topic, user) => {
+  
+    // const { data, error } = await supabase
+    //   .from('posts')
+    //   .select(`
+    //     *,
+    //     users (
+    //       name,
+    //       profile_image,
+    //       background_image,
+    //       id,
+    //       bio
+    //     ),
+    //     postLikes(*)
+    //   `)
+    //   .eq('topicId', topic.id)
+    //   .not('userId', 'eq', user.id)
+    //   .order('created_at', { ascending: false })
 
-    const { data: blockedUsers, error: blockError } = await supabase
-      .from('blocked_users')
-      .select('blocked_user_id')
-      .eq('user_id', user.id);
-
-    if (blockError) {
-      console.error('Error fetching blocked users:', blockError);
-      return [];
-    }
-
-    const blockedIds = blockedUsers.map(user => user.blocked_user_id);
-    const exclusionIds = [...blockedIds, user.id];
-
-    
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        users (
-          name,
-          profile_image,
-          background_image,
-          id,
-          bio
-        ),
-        postLikes(*)
-      `)
-      .eq('topicId', topic.id)
-      .not('userId', 'in', `(${exclusionIds.join(',')})`)
-      .order('created_at', { ascending: false })
+    const data = await getPosts(topic, user);
+    console.log(data, 'posts')
 
 
-    if (error) {
-      console.error(`Error fetching posts for topic ${topic.id}:`, error);
-      return [];
-    }
+    // if (error) {
+    //   console.error(`Error fetching posts for topic ${topic.id}:`, error);
+    //   return [];
+    // }
 
     return data;
   };
+
+  
   let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   const handleScroll = (event) => {
@@ -123,16 +120,8 @@ const Home = ({ filteredPost }) => {
   };
 
   const fetchMorePosts = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title')
-
-
-    if (error) {
-      console.error('Error fetching topics:', error);
-      return;
-    }
-
+    const data = await getTopics();
+    console.log(data, 'whats data for topics')
     if (data.length == topics.length) {
       setHasMorePosts(false)
     }

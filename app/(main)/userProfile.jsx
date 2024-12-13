@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions, Alert } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
@@ -16,6 +16,7 @@ import PostCard from './postCard'
 import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
 import { useAuth } from '../../context/AuthContext'
+import axios from 'axios'
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
@@ -35,11 +36,15 @@ const userProfile = () => {
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
+
+  
   
   useEffect(() => {
+    
     const fetchData = async () => {
       await fetchTopics();
     };
+
 
     fetchData();
     setbgImage(getUserImage(background_img))
@@ -136,7 +141,7 @@ const userProfile = () => {
   };
 
 
-  const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const openMenu = () => {
@@ -194,6 +199,39 @@ const openMenu = () => {
     router.push('blockedUsers')
   }
 
+  const deleteMyAccount = async () => {
+
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action is permanent and will delete all corresponding data.',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('User cancelled account deletion'),
+          style: 'cancel',
+        },
+        {
+          text: 'Yes, Delete',
+          onPress: async () => {
+            try {
+        
+
+            const response = await axios.delete(`http://localhost:3000/delete-user/${id}`);
+            console.log(response);
+            
+              router.replace('/welcome');
+            } catch (error) {
+              console.error('Error during account deletion:', error);
+              Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+
   return (
     <ScreenWrapper >
       <View style={styles.header}>
@@ -240,7 +278,7 @@ const openMenu = () => {
                 },
               ]}
             >
-              <TouchableOpacity
+              <Pressable
                 style={styles.menuItem}
                 onPress={() => {
                   closeMenu();
@@ -248,7 +286,17 @@ const openMenu = () => {
                 }}
               >
                 <Text style={styles.menuText}>Blocked List</Text>
-              </TouchableOpacity>
+              </Pressable>
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => {
+                  deleteMyAccount()
+                  closeMenu();
+
+                }}
+              >
+                <Text style={styles.menuText}>Delete My Account</Text>
+              </Pressable>
             </View>
           </View>
         </Pressable>

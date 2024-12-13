@@ -13,6 +13,7 @@ import { Alert } from 'react-native'
 import { supabase } from '../lib/supabase'
 import { getUserImage } from '../services/userProfileImage'
 import { Image } from 'expo-image'
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
 
@@ -20,11 +21,11 @@ const Login = () => {
   const emailRef = useRef("")
   const passwordRef = useRef("")
   const [loading, setLoading ] = useState(false)
+  const [error, setError] = useState(null);
 
+  let iconImg = getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z')
 
-  let iconImg= getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z')
-
-
+  const {login} = useAuth()
 
   const onSubmit = async () =>{
     if(!emailRef.current || !passwordRef.current){
@@ -34,17 +35,15 @@ const Login = () => {
 
     let email = emailRef.current.trim()
     let password = passwordRef.current.trim()
+      setLoading(true)
+    try {
+      const response = await login(email, password);
+      setLoading(false);
 
-    setLoading(true)
-
-    const {data, error} = await supabase.auth.signInWithPassword({
-      email, 
-      password
-    })
-    setLoading(false)
-
-    if(error){
-      Alert.alert('login', error.message)
+      router.push('home');
+    } catch (err) {
+      setLoading(false);
+      setError(err.response?.data?.error || 'An error occurred during login.');
     }
   }
   return (
@@ -106,7 +105,7 @@ export default Login
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
-    gap: 35, 
+    gap: 20, 
     paddingHorizontal: wp(5)
   },
   welcomeText: {
