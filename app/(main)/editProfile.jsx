@@ -15,6 +15,9 @@ import ButtonComponent from '../../components/Button'
 import { updateUserData } from '../../services/userService'
 import * as imagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
+import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
 
 const EditProfile = () => {
     const { user: currentUser, setUserData } = useAuth()
@@ -25,6 +28,8 @@ const EditProfile = () => {
         bio: ''
     });
     const [loading, setLoading] = useState(false)
+
+    const [response, setResponse] = useState('No response yet');
     const router = useRouter()
 
     useEffect(() => {
@@ -37,6 +42,45 @@ const EditProfile = () => {
             })
         }
     }, [currentUser])
+
+
+       const deleteUser = async () => {
+     
+        try {
+          const res = await axios.post('https://fxogjvujmqcpjdhyiawl.supabase.co/functions/v1/delete-user', {
+            userId: currentUser.id
+          }, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+      
+      
+          if (res.status === 200) {
+            await logoutUser();
+          
+            Alert.alert('Account Deleted', 'Sorry to see you go!')
+          } else {
+            console.log('Failed to delete user:', res.data);
+            setResponse('Failed to delete user: ' + res.data.message);
+          }
+        } catch (error) {
+          console.error('API call failed:', error);
+          setResponse('Failed to delete user: ' + error.message);
+        }
+      };
+      
+
+       const logoutUser = async () => {
+        try {
+         await AsyncStorage.removeItem('userToken');
+
+          router.push('/welcome'); 
+        } catch (error) {
+          console.error('Failed to clear user session:', error);
+        }
+      };
+
 
 
     const pickProfileImage = async () => {
@@ -114,8 +158,15 @@ const EditProfile = () => {
                         <Icon name="uploadImageIcon" />
                     </Pressable>
                 </View>
-                <BackButton router={router} />
             </View>
+
+            <View>
+                <BackButton router={router} />
+                <Pressable
+                    onPress={deleteUser}>
+                    <Icon name="deleteIcon"  />
+                </Pressable>
+                </View>
 
             <View style={styles.profilePicContainer}>
                 <Image

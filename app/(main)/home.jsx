@@ -33,10 +33,14 @@ const Home = ({ filteredPost }) => {
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const { notificationCount, setNotificationCount } = useNotification()
 
+
   useEffect(() => {
     setLoading(true)
     fetchData();
+    
   }, []);
+
+ 
 
   const fetchData = async () => {
     await fetchTopics();
@@ -164,11 +168,11 @@ const Home = ({ filteredPost }) => {
         </View>
 
         <View style={styles.icons}>
-          <Pressable onPress={() => router.push({
-              pathname: '/userProfile',
+          <Pressable style={styles.buttonStyle} onPress={() => router.push({
+              pathname: 'userProfile',
               params: { user: user, id: user.id, profile_img: user.profile_image, background_img: user.background_image ,name: user.name, bio: user.bio}
             }
-            )}style={styles.buttonStyle} >
+            )} >
             <Avatar
               uri={user?.profile_image}
               size={hp(4.3)}
@@ -202,7 +206,6 @@ const Home = ({ filteredPost }) => {
               <View  style={{ alignItems: 'center', marginTop: 30 }}>
                   <Icon name="hexagonIcon" fill={theme.colors.yellow} />
                     <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
             
               </View>
               <ScrollView horizontal={true}>

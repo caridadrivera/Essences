@@ -16,12 +16,13 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@google-cloud/functions-framework": "^3.4.4",
     "@hugeicons/react-native-pro": "^0.1.7",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "@rneui/themed": "^4.0.0-rc.8",
-    "@supabase/supabase-js": "^2.45.0",
+    "@supabase/supabase-js": "^2.47.10",
     "axios": "^1.7.7",
     "bad-words": "^4.0.0",
     "base64-arraybuffer": "^1.0.2",
@@ -37,6 +38,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
+    "firebase-functions": "^6.2.0",
     "html-to-text": "^9.0.5",
     "moment": "^2.30.1",
     "patch-package": "^8.0.0",
@@ -55,11 +57,13 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.1.0",
     "react-native-web": "~0.19.10",
-    "react-native-webview": "^13.8.6"
+    "react-native-webview": "13.8.6",
+    "supabase": "^2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/jest": "^29.5.12",
+    "@types/node": "^22.10.3",
     "@types/react": "~18.2.45",
     "@types/react-native": "^0.73.0",
     "@types/react-test-renderer": "^18.0.7",
