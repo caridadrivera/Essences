@@ -208,6 +208,7 @@ const openMenu = () => {
             <Icon name="arrowLeft" />
           </Pressable>
         </View>
+
         <View style={styles.profilePicContainer}>
           <Avatar
             uri={profile_img}
@@ -267,7 +268,7 @@ const openMenu = () => {
     )}
   </View>
 
-      </View>
+</View>
 
       <View style={{ alignItems: 'center'}}>
         <Text style={{ fontWeight: 'bold' }}>{name}</Text>

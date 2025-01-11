@@ -172,7 +172,7 @@ const EditProfile = () => {
                     </Pressable>
                 </View>
 
-                <View style={styles.profilePicContainer}>
+            <View style={styles.profilePicContainer}>
                 <Image
                     source={profileImgSrc}
                     style={styles.profilePic} />
@@ -180,9 +180,7 @@ const EditProfile = () => {
                     onPress={pickProfileImage}>
                     <Icon name="uploadImageIcon"  />
                 </Pressable>
-            </View>
-
-            <View>
+                <View>
                 <Pressable
                 style={styles.iconButton}
                     onPress={deleteUser}>
@@ -190,6 +188,7 @@ const EditProfile = () => {
                 </Pressable>
             </View>
             </View>
+        </View>
 
          
 
@@ -217,7 +216,7 @@ export default EditProfile
 
 const styles = StyleSheet.create({
     backgroundImgContainer: {
-        position: 'relative', // Required for absolute positioning to work
+        width: '100%', // Required for absolute positioning to work
     },
     welcomeText: {
         fontSize: hp(4),
@@ -249,34 +248,35 @@ const styles = StyleSheet.create({
         zIndex: 1, 
     },
     profilePicContainer: {
-        position: 'relative', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-    },
-    profilePic: {
-        height: 150, 
-        width: 150, 
-        borderRadius: 75, 
+        flex: 1,
+        alignItems: 'center'
+      },
+      profilePic: {
+        height: 155,
+        width: 155,
         borderRadius: 999,
         borderBlockColor: theme.colors.primaryDark,
         borderWidth: 2,
-        marginTop: -100
-    },
-    editIcon: {
-        position: 'absolute',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)', 
-        padding: 8,
-        borderRadius: 20, 
-        zIndex: 1, 
-    },
-    backgroundImgContainer: {
-        width: '100%'
+        marginTop: -140
       },
+editIcon: {
+    position: 'absolute',
+    botton: 0,
+    padding: 7,
+    borderRadius: 50,
+    backgroundColor: 'white',
+    shadowColor: theme.colors.textLight,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    elevation: 7
+  },
+
       header: {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 18,
+        marginBottom: 10,
     
       },
 
@@ -300,7 +300,8 @@ const styles = StyleSheet.create({
         paddingVertical: 15
     },
     iconButton: {
-        left: 188
+        left: 188,
+        top: -40
       },
 
 })
