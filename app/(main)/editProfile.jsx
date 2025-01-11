@@ -13,7 +13,7 @@ import { getUserImage, uploadFile } from '../../services/userProfileImage'
 import Input from '../../components/Input'
 import ButtonComponent from '../../components/Button'
 import { updateUserData } from '../../services/userService'
-import * as imagePicker from 'expo-image-picker'
+import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -84,25 +84,35 @@ const EditProfile = () => {
 
 
     const pickProfileImage = async () => {
-        let result = await imagePicker.launchImageLibraryAsync({
-            mediaTypes: imagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.7
-        })
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Sorry, we need camera roll permissions to make this work!');
+            return;
+        } else {
+             // Launch the image library with updated parameters
+     
+             let result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images', 'videos'],
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 1,
+              });
 
-        if (!result.canceled) {
-            setUser({ ...user, profile_image: result.assets[0] })
+              if (!result.canceled) {
+                setUser({ ...user, profile_image: result.assets[0] })
+            }
         }
+    
+    
     }
 
     const pickBackgroundImage = async () => {
-        let result = await imagePicker.launchImageLibraryAsync({
-            mediaTypes: imagePicker.MediaTypeOptions.Images,
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images', 'videos'],
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 0.7
-        })
+            quality: 1,
+          });
 
         if (!result.canceled) {
             setUser({ ...user, background_image: result.assets[0] })
@@ -146,29 +156,23 @@ const EditProfile = () => {
 
     return (
         <ScreenWrapper>
-            <View style={styles.profilePicContainer}>
-                <View style={styles.imageWrapper}>
+            <View  style={styles.header}>
+                 <View style={styles.backgroundImgContainer}>
                     <Image
                         source={backgroundImgSrc}
                         style={{ height: 228, width: "100%" }}
                     />
+                    <View>
+                        <BackButton router={router}/>
+                    </View>
                     <Pressable
                         style={[styles.iconContainer, { top: 10, right: 10 }]}
                         onPress={pickBackgroundImage}>
                         <Icon name="uploadImageIcon" />
                     </Pressable>
                 </View>
-            </View>
 
-            <View>
-                <BackButton router={router} />
-                <Pressable
-                    onPress={deleteUser}>
-                    <Icon name="deleteIcon"  />
-                </Pressable>
-                </View>
-
-            <View style={styles.profilePicContainer}>
+                <View style={styles.profilePicContainer}>
                 <Image
                     source={profileImgSrc}
                     style={styles.profilePic} />
@@ -177,6 +181,17 @@ const EditProfile = () => {
                     <Icon name="uploadImageIcon"  />
                 </Pressable>
             </View>
+
+            <View>
+                <Pressable
+                style={styles.iconButton}
+                    onPress={deleteUser}>
+                    <Icon name="deleteIcon"  />
+                </Pressable>
+            </View>
+            </View>
+
+         
 
             {/* form */}
             <View style={styles.form}>
@@ -254,6 +269,16 @@ const styles = StyleSheet.create({
         borderRadius: 20, 
         zIndex: 1, 
     },
+    backgroundImgContainer: {
+        width: '100%'
+      },
+      header: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 18,
+    
+      },
 
     editBackground: {
         alignItems: 'center',
@@ -273,6 +298,9 @@ const styles = StyleSheet.create({
         height: hp(15),
         alignItems: 'flex-start',
         paddingVertical: 15
-    }
+    },
+    iconButton: {
+        left: 188
+      },
 
 })

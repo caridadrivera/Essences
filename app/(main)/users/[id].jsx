@@ -226,6 +226,7 @@ const Profile = () => {
                 >
                   <Text style={styles.menuText}>Block {user_name}</Text>
                 </TouchableOpacity>
+
               </View>
             </Pressable>
           </Modal>

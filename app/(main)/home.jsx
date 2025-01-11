@@ -20,7 +20,6 @@ import { Image } from 'expo-image'
 import { fetchNotifications } from '../../services/notificationService'
 import { useNotification } from '../../context/NotificationContext'
 
-
 const Home = ({ filteredPost }) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
@@ -160,12 +159,6 @@ const Home = ({ filteredPost }) => {
           height: 148,
           width: "78%"
         }} />
-
-        <View style={styles.headerText}>
-          <Pressable onPress={() => { router.push('editProfile') }}>
-            <Icon name="settingsIcon" />
-          </Pressable>
-        </View>
 
         <View style={styles.icons}>
           <Pressable style={styles.buttonStyle} onPress={() => router.push({

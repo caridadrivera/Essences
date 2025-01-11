@@ -214,7 +214,7 @@ const openMenu = () => {
             style={styles.profilePic} />
         </View>
       
-        <View>
+  <View>
     <TouchableOpacity
       ref={iconRef}
       onPress={menuVisible ? closeMenu : openMenu}
@@ -249,6 +249,17 @@ const openMenu = () => {
               >
                 <Text style={styles.menuText}>Blocked List</Text>
               </TouchableOpacity>
+
+                      
+              <TouchableOpacity onPress={() => {
+                     router.push('editProfile');
+                     closeMenu();
+                     }}
+                     style={styles.menuItem}
+                   >
+                  <Text>Edit profile</Text>
+                </TouchableOpacity>
+               
             </View>
           </View>
         </Pressable>
@@ -388,7 +399,6 @@ const styles = StyleSheet.create({
   
 
   menuText: {
-    fontSize: 12,
     color: 'red',
   },
   iconButton: {
