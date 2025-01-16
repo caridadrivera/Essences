@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable, Modal } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import { wp, hp } from '../../helpers/common';
-import { Card } from 'react-native-paper';
+import { Card, PaperProvider } from 'react-native-paper';
 import Icon from '../../assets/icons';
 import Avatar from '../../components/Avatar';
 import { htmlToText } from 'html-to-text';
@@ -94,6 +94,8 @@ const HomePostCard = ({ user, item, router}) => {
   const liked = likes.some(like => like.userId == user?.id ? true : false)
 
     return (
+      <PaperProvider>
+      
         <Card style={{ margin: 20, width: 300 }} key={item.id}>
         <Card.Title
           subtitle={item.users? item.users.name : item.name}
@@ -196,6 +198,7 @@ const HomePostCard = ({ user, item, router}) => {
   
         </Card.Actions>
       </Card>
+      </PaperProvider>
     );
 };
 

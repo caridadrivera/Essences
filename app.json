@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.caridadrivera.essences"
+      "bundleIdentifier": "com.caridadrivera.essences",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photos to allow you to select and share them within the app."
+      }
     },
     "android": {
       "adaptiveIcon": {
