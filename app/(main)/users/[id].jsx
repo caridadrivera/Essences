@@ -155,7 +155,6 @@ const Profile = () => {
   };
 
   const blockUser = async () => {
-
     const { data, error } = await supabase
       .from('blocked_users')
       .insert([{ user_id: user.id, blocked_user_id: id }]);
@@ -170,8 +169,6 @@ const Profile = () => {
     return true;
   };
   
-
-
 
   return (
     <ScreenWrapper>
@@ -192,13 +189,14 @@ const Profile = () => {
             uri={profile_img}
             style={styles.profilePic} />
         </View>
+
+        <View>
         <TouchableOpacity
               ref={iconRef}
-              onPress={openMenu}
+              onPress={menuVisible ? closeMenu : openMenu}
               style={styles.iconButton}>
               <Text style={styles.icon}>⋮</Text>
           </TouchableOpacity>
-      <View>
       {menuVisible && (
           <Modal
             transparent={true}
@@ -206,7 +204,7 @@ const Profile = () => {
             visible={menuVisible}
             onRequestClose={closeMenu}
           >
-            <Pressable onPress={closeMenu}>
+            <Pressable>
               <View
                 style={[
                   styles.menu,
@@ -226,14 +224,11 @@ const Profile = () => {
                 >
                   <Text style={styles.menuText}>Block {user_name}</Text>
                 </TouchableOpacity>
-
               </View>
             </Pressable>
           </Modal>
-        )}
-     
-      </View>
-      
+        )}  
+      </View>  
       </View>
       <View style={{ alignItems: 'center', marginBottom: 5}}>
         <Text style={{fontWeight: 'bold' }}>{user_name}</Text>

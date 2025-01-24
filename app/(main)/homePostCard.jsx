@@ -187,7 +187,7 @@ const HomePostCard = ({ user, item, router}) => {
         </Card.Content>
   
         <Card.Actions>
-          <TouchableOpacity onPress={onLike}>
+          <TouchableOpacity key={liked} onPress={onLike}>
             <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'none'} style={{BorderFullIcon: "bold"}}/>
           </TouchableOpacity>
           <Text style={styles.count}>

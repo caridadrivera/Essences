@@ -49,9 +49,10 @@ const NotificationItem = ({ item, router }) => {
   return (
 
     <View>
-      <TouchableOpacity style={styles.container} onPress={() =>{
-        handleNotificationClick()
-        setModalVisible(true)
+      <TouchableOpacity style={styles.container} 
+        onPress={() =>{
+          handleNotificationClick()
+          setModalVisible(true)
         }}>
         <Avatar uri={item?.sender?.profile_image} />
         <View style={styles.nameTitle}>

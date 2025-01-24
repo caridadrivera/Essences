@@ -66,11 +66,11 @@ const blockedUsers = () => {
       <View style={styles.container}>
         <ScrollView showsVertricalScrollIndicator={false} contentContainerStyle={styles.listStyle}>
           {
-            blockedUsers.map(item => {
+            blockedUsers.map((item, index) => {
               return (
                 <BlockedUserItem
                   item={item}
-                  key={item.id}
+                  key={item.id || index}
                   router={router} />
               )
             })

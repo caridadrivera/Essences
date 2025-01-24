@@ -100,8 +100,8 @@ const userProfile = () => {
     return data;
   };
 
-  const fetchTopics = async () => {
-    const { data, error } = await supabase
+const fetchTopics = async () => {
+  const { data, error } = await supabase
       .from('topics')
       .select('id, title');
 
@@ -111,7 +111,7 @@ const userProfile = () => {
 
     setTopics(data);
 
-    const postsByTopic = {};
+  const postsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic);
       postsByTopic[topic.id] = topicPosts;
@@ -121,23 +121,21 @@ const userProfile = () => {
     setHasMorePosts(false)
   };
 
-  const handleScroll = (event) => {
-    const y = event.nativeEvent.contentOffset.y;
-    const contentHeight = event.nativeEvent.contentSize.height;
-    const screenHeight = Dimensions.get('window').height;
-
-    const threshold = 100;
+const handleScroll = (event) => {
+  const y = event.nativeEvent.contentOffset.y;
+  const contentHeight = event.nativeEvent.contentSize.height;
+  const screenHeight = Dimensions.get('window').height;
+  const threshold = 100;
 
     if (y + screenHeight + threshold >= contentHeight) {
       fetchMorePosts()
     }
-
     setScrollPosition(y);
   };
 
 
   const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
+  const screenHeight = Dimensions.get('window').height;
 
 const openMenu = () => {
   iconRef.current.measure((fx, fy, width, height, px, py) => {
@@ -161,8 +159,8 @@ const openMenu = () => {
 
 
     
-  const closeMenu = () => {
-    setMenuVisible(false);
+ const closeMenu = () => {
+  setMenuVisible(false);
   };
 
 
@@ -181,9 +179,10 @@ const openMenu = () => {
     }
 
     setTopics(data);
+
     const fetchedPostsByTopic = {};
     for (const topic of data) {
-      const topicPosts = await fetchPosts(topic);
+        const topicPosts = await fetchPosts(topic);
       fetchedPostsByTopic[topic.id] = topicPosts;
     }
 
@@ -229,13 +228,11 @@ const openMenu = () => {
         visible={menuVisible}
         onRequestClose={closeMenu}
       >
-        <Pressable onPress={closeMenu} style={{ flex: 1 }}>
-          <View>
+        <Pressable >
             <View
               style={[
                 styles.menu,
                 {
-                  position: 'absolute',
                   top: menuPosition.top,
                   left: menuPosition.left,
                 },
@@ -259,23 +256,18 @@ const openMenu = () => {
                      style={styles.menuItem}
                    >
                   <Text>Edit profile</Text>
-                </TouchableOpacity>
-               
-            </View>
+                </TouchableOpacity>                   
           </View>
         </Pressable>
       </Modal>
     )}
+    </View>
   </View>
-
-</View>
-
-      <View style={{ alignItems: 'center'}}>
-        <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-        <Text style={{ fontStyle: 'italic'}}>{bio}</Text>
-        <Text style={{ fontWeight: 'bold' }}>__________________</Text>
-      </View>
-
+    <View style={{ alignItems: 'center'}}>
+      <Text style={{ fontWeight: 'bold' }}>{name}</Text>
+      <Text style={{ fontStyle: 'italic'}}>{bio}</Text>
+      <Text style={{ fontWeight: 'bold' }}>__________________</Text>
+    </View>
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
@@ -397,10 +389,14 @@ const styles = StyleSheet.create({
     elevation: 5,
     padding: 10,
   },
-  
-
   menuText: {
     color: 'red',
+  },
+  menuItem: {
+    padding: 10,
+    borderBottomWidth: 1,  // Add a bottom border
+    borderBottomColor: 'gray', 
+    fontSize: 12
   },
   iconButton: {
     left: 188
@@ -410,5 +406,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bolder',
     color: 'blue',
   },
+
 
 })

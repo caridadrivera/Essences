@@ -197,7 +197,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
         </Card.Content>
 
         <Card.Actions>
-          <TouchableOpacity onPress={onLike}>
+          <TouchableOpacity key={liked} onPress={onLike}>
             <Icon name="hexagonIcon" fill={liked ? theme.colors.likeYellow : 'none'} />
           </TouchableOpacity>
           <Text style={styles.count}>
