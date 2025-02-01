@@ -193,7 +193,7 @@ const Profile = () => {
         <View>
         <TouchableOpacity
               ref={iconRef}
-              onPress={menuVisible ? closeMenu : openMenu}
+              onPress={openMenu}
               style={styles.iconButton}>
               <Text style={styles.icon}>⋮</Text>
           </TouchableOpacity>
@@ -204,7 +204,7 @@ const Profile = () => {
             visible={menuVisible}
             onRequestClose={closeMenu}
           >
-            <Pressable>
+            <Pressable style={styles.overlay} onPress={closeMenu}>
               <View
                 style={[
                   styles.menu,

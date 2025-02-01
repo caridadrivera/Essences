@@ -94,9 +94,8 @@ const HomePostCard = ({ user, item, router}) => {
   const liked = likes.some(like => like.userId == user?.id ? true : false)
 
     return (
-      <PaperProvider>
       
-        <Card style={{ margin: 20, width: 300 }} key={item.id}>
+       <Card style={{ margin: 20, width: 300, display: 'flex', flexDirection: 'column' }} key={item.id}>
         <Card.Title
           subtitle={item.users? item.users.name : item.name}
           titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
@@ -167,6 +166,7 @@ const HomePostCard = ({ user, item, router}) => {
 
         <Card.Content
           style={{
+            flexGrow: 1, // Makes sure the content can expand but leaves space for actions
             margin: 10,
             padding: 10,
             backgroundColor: 'lightgrey',
@@ -186,7 +186,7 @@ const HomePostCard = ({ user, item, router}) => {
           </Text>
         </Card.Content>
   
-        <Card.Actions>
+        <Card.Actions  style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', padding: 10 }}>
           <TouchableOpacity key={liked} onPress={onLike}>
             <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'none'} style={{BorderFullIcon: "bold"}}/>
           </TouchableOpacity>
@@ -198,7 +198,6 @@ const HomePostCard = ({ user, item, router}) => {
   
         </Card.Actions>
       </Card>
-      </PaperProvider>
     );
 };
 
@@ -243,7 +242,7 @@ const styles = StyleSheet.create({
     menuText: {
       fontSize: 16,
       color: '#333',
-    },
+    }
     
 });
 

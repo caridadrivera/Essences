@@ -217,7 +217,7 @@ const openMenu = () => {
   <View>
     <TouchableOpacity
       ref={iconRef}
-      onPress={menuVisible ? closeMenu : openMenu}
+      onPress={openMenu}
       style={styles.iconButton}>
       <Text style={styles.icon}>⋮</Text>
     </TouchableOpacity>
@@ -228,7 +228,7 @@ const openMenu = () => {
         visible={menuVisible}
         onRequestClose={closeMenu}
       >
-        <Pressable >
+        <Pressable style={styles.overlay} onPress={closeMenu} >
             <View
               style={[
                 styles.menu,
@@ -406,6 +406,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bolder',
     color: 'blue',
   },
+  overlay:{
+    flex: 1
+  }
 
 
 })
