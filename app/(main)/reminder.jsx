@@ -59,7 +59,7 @@ const ReminderModal = () => {
         await Notifications.scheduleNotificationAsync({
           content: {
             title: "Reminder",
-            body: 'This is your scheduled event reminder.',
+            body: `Don't forget to write about ${reminderTopicRef} today.`,
           },
           trigger: { type: 'date', timestamp: triggerDate},
         });
@@ -110,13 +110,14 @@ const ReminderModal = () => {
         <View style={[styles.centeredView, styles.container]}>
             <Text>Set Your Reminder</Text>
         <View>
-            <Button title="Date" onPress={() => setShowPicker(true)} />
+        <CalendarIconButton  selectedDate={date} onPress={() => setShowPicker(prev => !prev)} />
             {showPicker && (
-                <DateTimePicker
+            <DateTimePicker
                 value={date}
                 mode="date"
                 display="default"
                 onChange={onDateChange}
+                minimumDate={new Date()}
                 />)}
             </View>
 
