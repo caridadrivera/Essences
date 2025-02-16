@@ -17,24 +17,24 @@ import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
 import { useAuth } from '../../context/AuthContext'
 
+
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const { user, setAuth } = useAuth()
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
-
   const [bgImage, setbgImage] = useState(null)
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const { id, profile_img, background_img, name, bio} = useLocalSearchParams()
-
   const [isPostDeleted, setIsPostDeleted] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
+
   
   useEffect(() => {
     const fetchData = async () => {
@@ -103,14 +103,14 @@ const userProfile = () => {
 const fetchTopics = async () => {
   const { data, error } = await supabase
       .from('topics')
-      .select('id, title');
+      .select('id, title, user_id');
 
     if (error) {
       return;
     }
 
     setTopics(data);
-
+ 
   const postsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic);
@@ -167,7 +167,7 @@ const openMenu = () => {
   const fetchMorePosts = async () => {
     const { data, error } = await supabase
       .from('topics')
-      .select('id, title')
+      .select('id, title, user_id')
 
     if (error) {
       console.error('Error fetching topics:', error);
@@ -192,6 +192,8 @@ const openMenu = () => {
   const navigateToBlockedList = () =>{
     router.push('blockedUsers')
   }
+
+
 
   return (
     <ScreenWrapper >
@@ -249,14 +251,23 @@ const openMenu = () => {
               </TouchableOpacity>
 
                       
-              <TouchableOpacity onPress={() => {
+               <TouchableOpacity onPress={() => {
                      router.push('editProfile');
                      closeMenu();
                      }}
                      style={styles.menuItem}
                    >
                   <Text>Edit profile</Text>
-                </TouchableOpacity>                   
+                </TouchableOpacity> 
+
+                 <TouchableOpacity onPress={() => {
+                     router.push('reminder')
+                     closeMenu();
+                     }}
+                     style={styles.menuItem}
+                   >
+                  <Text>Set reminder</Text>
+                </TouchableOpacity>                     
           </View>
         </Pressable>
       </Modal>
@@ -274,10 +285,12 @@ const openMenu = () => {
         {topics.map(topic => (
           <View key={topic.id} >
             <View style={{ alignItems: 'center', marginTop: 20 }}>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              { topic.user_id === user.id ? <Icon name="hexagonIcon" fill={theme.colors.yellow} /> :
+                 <Icon name="hexagonIcon"  />}
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                 <TouchableOpacity key={topic.id} onPress={() => {
+                  console.log(topic)
                   setSelectedTopic(topic.id);
                   setPostModalVisible(true);
                 }}>
@@ -326,6 +339,8 @@ const openMenu = () => {
       />
 
     </ScreenWrapper>
+
+    
 
 
 

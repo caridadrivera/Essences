@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router'
 import ScreenWrapper from '../components/ScreenWrapper'
 import Welcome from './welcome'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import * as Notifications from 'expo-notifications';
+
 
 const index = () => {
     const router = useRouter()
@@ -14,9 +16,6 @@ const index = () => {
             <Welcome/>
        </ScreenWrapper >
     </GestureHandlerRootView>
-
-
-
   )
 }
 

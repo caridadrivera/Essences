@@ -50,8 +50,8 @@ const Home = ({ filteredPost }) => {
     const { data, error } = await supabase
       .from('topics')
       .select('id, title')
-
-
+      .is('user_id', null);
+      
     if (error) {
       console.error('Error fetching topics:', error);
       return;
@@ -129,6 +129,7 @@ const Home = ({ filteredPost }) => {
     const { data, error } = await supabase
       .from('topics')
       .select('id, title')
+      .is('user_id', null);
 
 
     if (error) {

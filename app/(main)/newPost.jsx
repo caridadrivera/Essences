@@ -1,13 +1,7 @@
 import { StyleSheet, Text, View , Modal, TouchableOpacity} from 'react-native'
 import React,{useState, useRef} from 'react'
-import ScreenWrapper from '../../components/ScreenWrapper'
-import Input from '../../components/Input'
-import Icon from '../../assets/icons'
-import { useRouter } from 'expo-router'
 import RichTextEditor from '../../components/RichTextEditor'
-import { theme } from '../../constants/theme'
 import { Alert } from 'react-native'
-import { supabase } from '../../lib/supabase'
 import { createOrUpdatePost } from '../../services/postService'
 import { analyzeText } from '../../services/perspecticeService'
 
@@ -15,7 +9,6 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
 
   const bodyRef = useRef("")
   const editorRef = useRef("")
-  const router = useRouter()
   const [loading, setLoading]  = useState(false)
   const [toxicityScore, setToxicityScore] = useState(null);
 
@@ -54,10 +47,7 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
           isToxic: false
         }
         processPost(data)
-
-
       }
-
      
     } catch (error) {
       Alert.alert('Error', 'Unable to analyze the content.');
