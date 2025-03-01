@@ -31,7 +31,8 @@ const EditProfile = () => {
     const router = useRouter()
     const [modalVisible, setModalVisible] = useState(false);
     const [permissionStringModalVisible, setpermissionStringModalVisible] = useState(false);
-
+    const [isChangeProfilePic, setIsChangedProfilePic] = useState(false)
+    
     useEffect(() => {
         if (currentUser) {
             setUser({
@@ -76,13 +77,9 @@ const EditProfile = () => {
             console.error('Failed to clear user session:', error);
         }
     };
-    const pickProfileImage = async () => {
-        const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
-    
-        if(existingStatus !== 'granted'){
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-            setpermissionStringModalVisible(true)
+    const processProfilePic = async () => {
+           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
             if(status !== 'granted'){
                 alert('Sorry, we need photo library permissions to make this work!');
@@ -98,6 +95,33 @@ const EditProfile = () => {
                     setUser({ ...user, profile_image: result.assets[0] })
                 }
             }
+    }
+    
+    const processBackgroundPic = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if(status !== 'granted'){
+            alert('Sorry, we need photo library permissions to make this work!');
+        } else {
+            let result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 1,
+            });
+
+            if (!result.canceled) {
+                setUser({ ...user, background_image: result.assets[0] })
+            }
+        }
+    }
+
+    const pickProfileImage = async () => {
+        const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+    
+        if(existingStatus !== 'granted'){
+            setpermissionStringModalVisible(true)     
+            setIsChangedProfilePic(true)
             
         } else {
 
@@ -118,25 +142,8 @@ const EditProfile = () => {
         const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
     
         if(existingStatus !== 'granted'){
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
             setpermissionStringModalVisible(true)
-
-            if(status !== 'granted'){
-                alert('Sorry, we need photo library permissions to make this work!');
-            } else {
-                let result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ['images'],
-                    allowsEditing: true,
-                    aspect: [4, 3],
-                    quality: 1,
-                });
-    
-                if (!result.canceled) {
-                    setUser({ ...user, background_image: result.assets[0] })
-                }
-            }
-            
+                 
         } else {
             let result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['images'],
@@ -161,7 +168,6 @@ const EditProfile = () => {
         }
         setLoading(true)
 
-        //update user
         if (typeof profile_image == 'object') {
             let imageRes = await uploadFile('profiles', profile_image?.uri, true)
             if (imageRes.success) userData.profile_image = imageRes.data
@@ -191,6 +197,11 @@ const EditProfile = () => {
     };
     const handleAcceptPermission = () =>{
         setpermissionStringModalVisible(false)
+        if(isChangeProfilePic){
+            processProfilePic()
+        } else {
+            processBackgroundPic()
+        }
     
     };
     const handleDeclinePermission = () =>{
@@ -211,7 +222,7 @@ const EditProfile = () => {
                         style={{ height: 228, width: "100%" }}
                     />
                     <View>
-                    <Pressable onPress={() => router.push('userProfile')}>
+                    <Pressable onPress={() => { router.back() }}>
                         <Icon name="arrowLeft" />
                     </Pressable>
                     </View>
@@ -389,8 +400,8 @@ const styles = StyleSheet.create({
         paddingVertical: 15
     },
     iconButton: {
-        left: 188,
-        top: -40
+        left: 180,
+        top: -35
     },
     centeredView: {
         flex: 1,

@@ -12,13 +12,6 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
   const [loading, setLoading]  = useState(false)
   const [toxicityScore, setToxicityScore] = useState(null);
 
-  
-
-//on submit check the level of toxicity. if high. warn user that post violates terms agreement. please be kind 
-//add toxic flag (yes/no) to post table as a column
-//add isReported flag (yes/no)
-// if post toxic, post but with warning, have the flag as true
-//if toxic post is then reported, post should be taken down 
   const onSubmit = async () =>{
     if(!bodyRef.current ){
       Alert.alert("Post", "Your post is empty :(")
@@ -65,8 +58,8 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
 
     if(response.success){
       bodyRef.current = ''
-      editorRef.current?.setContentHTML('')
-      onClose()
+      editorRef.current?.setContentHTML('');
+      onClose();
     }else {
       Alert.alert('Post', response.msg)
     }

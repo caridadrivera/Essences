@@ -25,9 +25,6 @@ export const createOrUpdatePost = async (post)=>{
 
 }
 
-
-
-
 export const createPostLike= async (postLike) => {
     try{    
         const { data, error } = await supabase
@@ -47,10 +44,9 @@ export const createPostLike= async (postLike) => {
 
     }
 
-  }
+}
 
-
-  export const removePostLike = async (userId, postId) => {
+export const removePostLike = async (userId, postId) => {
     try{    
         const { error } = await supabase
         .from('postLikes')
@@ -69,4 +65,4 @@ export const createPostLike= async (postLike) => {
 
     }
 
-  };
+};

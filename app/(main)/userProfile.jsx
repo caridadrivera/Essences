@@ -1,6 +1,5 @@
-import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
-import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../constants/theme'
 import { supabase } from '../../lib/supabase'
 import Avatar from '../../components/Avatar'
@@ -16,14 +15,15 @@ import PostCard from './postCard'
 import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
 import { useAuth } from '../../context/AuthContext'
+import ReminderModal from './reminder'
+
 
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const { user, setAuth } = useAuth()
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
+  const [reminderModalVisible, setReminderModalVisible] = useState(false);
   const [bgImage, setbgImage] = useState(null)
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null)
@@ -61,26 +61,29 @@ const userProfile = () => {
   }, [postModalVisible, isPostDeleted]);
 
   const handlePostEvent = async (payload) => {
-    if ((payload.eventType === 'INSERT') && payload?.new?.id) {
+    if (payload.eventType === 'INSERT' && payload?.new?.id) {
       let newPost = { ...payload.new };
-      let response = await getUserData(newPost.userId);
+
+      const response = await getUserData(newPost.userId);
       newPost.user = response.success ? response.data : {};
-
+      newPost.postLikes = newPost.postLikes || [];
+  
       const topicId = newPost.topicId;
-
       setPostsByTopic((prevPosts) => ({
         ...prevPosts,
         [topicId]: [newPost, ...(prevPosts[topicId] || [])],
       }));
     }
   };
+  
+  
 
   const fetchPosts = async (topic) => {
     const { data, error } = await supabase
       .from('posts')
       .select(`
         *,
-        users (
+        user:users (
           name,
           id,
           profile_image,
@@ -100,10 +103,11 @@ const userProfile = () => {
     return data;
   };
 
-const fetchTopics = async () => {
+  const fetchTopics = async () => {
   const { data, error } = await supabase
       .from('topics')
-      .select('id, title, user_id');
+      .select('id, title, user_id')
+      .or(`user_id.is.null,user_id.eq.${user.id}`);
 
     if (error) {
       return;
@@ -121,16 +125,16 @@ const fetchTopics = async () => {
     setHasMorePosts(false)
   };
 
-const handleScroll = (event) => {
-  const y = event.nativeEvent.contentOffset.y;
-  const contentHeight = event.nativeEvent.contentSize.height;
-  const screenHeight = Dimensions.get('window').height;
-  const threshold = 100;
+  const handleScroll = (event) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const screenHeight = Dimensions.get('window').height;
+    const threshold = 100;
 
-    if (y + screenHeight + threshold >= contentHeight) {
-      fetchMorePosts()
-    }
-    setScrollPosition(y);
+      if (y + screenHeight + threshold >= contentHeight) {
+        fetchMorePosts()
+      }
+      setScrollPosition(y);
   };
 
 
@@ -192,6 +196,7 @@ const openMenu = () => {
   const navigateToBlockedList = () =>{
     router.push('blockedUsers')
   }
+
 
 
 
@@ -261,7 +266,7 @@ const openMenu = () => {
                 </TouchableOpacity> 
 
                  <TouchableOpacity onPress={() => {
-                     router.push('reminder')
+                     setReminderModalVisible(true);
                      closeMenu();
                      }}
                      style={styles.menuItem}
@@ -302,15 +307,13 @@ const openMenu = () => {
             </View>
             <ScrollView horizontal={true} >
               {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (postsByTopic[topic.id] || []).map(filteredPost => (
-                <TouchableOpacity key={filteredPost.id} onPress={() => {
-                  setSelectedPost(filteredPost);
-                  setModalVisible(true);
-                }}>
+            
                   <PostCard
+                    key={filteredPost.id}
                     item={filteredPost}
                     router={router}
                     setIsPostDeleted={setIsPostDeleted} />
-                </TouchableOpacity>
+            
               )):(
                    <View style={{ alignItems: 'center', marginLeft: 35 }}>
                     <Text >No posts on this topic yet</Text>
@@ -335,13 +338,15 @@ const openMenu = () => {
         isVisible={postModalVisible}
         user={user}
         topicId={selectedTopic}
-        onClose={() => setPostModalVisible(false)}
+        onClose={() => setPostModalVisible(false) }
+      />
+
+      <ReminderModal 
+        isVisible={reminderModalVisible}
+        onClose={()=> setReminderModalVisible(false)}
       />
 
     </ScreenWrapper>
-
-    
-
 
 
   )

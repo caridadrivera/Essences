@@ -19,7 +19,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
   const { user } = useAuth()
 
   const leftComponent = ({ size }) => (
-    <Avatar uri={item?.users.profile_image} style={{ width: size, height: size, borderRadius: size / 2 }} />
+    <Avatar uri={item?.user.profile_image} style={{ width: size, height: size, borderRadius: size / 2 }} />
   );
   const [likes, setLikes] = useState([]);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -110,7 +110,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
     <PaperProvider>
       <Card style={{ margin: 20, width: 300 }} key={item.id}>
         <Card.Title
-          subtitle={item.users ? item.users.name : item.name}
+          subtitle={item.user ? item.user.name : item.name}
           titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
           subtitleStyle={{ fontSize: 14 }}
           left={leftComponent}

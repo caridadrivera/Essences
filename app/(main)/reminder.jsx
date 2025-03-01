@@ -6,7 +6,6 @@ import Input from '../../components/Input';
 import { wp } from '../../helpers/common';
 import CalendarIconButton from '../../components/CalendarButton';
 import * as Notifications from 'expo-notifications';
-import * as Permissions from 'expo-permissions';
 import { supabase } from '../../lib/supabase';
 import ButtonComponent from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -16,22 +15,22 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
     }),
-  });
-  
+});
 
 
 
-const ReminderModal = () => {
+
+const ReminderModal = ({ onClose, isVisible }) => {
 
     const { user } = useAuth();
     const router = useRouter();
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
-  
+
     const [loading, setLoading] = useState(false);
 
     const reminderTopicRef = useRef("");
@@ -50,23 +49,23 @@ const ReminderModal = () => {
         const currentDate = selectedDate || date;
         setShowPicker(Platform.OS === 'ios');
         setDate(currentDate);
-      };
-    
+    };
+
     async function scheduleNotification() {
-        const triggerDate = new Date(date); 
+        const triggerDate = new Date(date);
         triggerDate.setMinutes(triggerDate.getMinutes())
-   
+
         await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Reminder",
-            body: `Don't forget to write about ${reminderTopicRef} today.`,
-          },
-          trigger: { type: 'date', timestamp: triggerDate},
+            content: {
+                title: "Reminder",
+                body: `Don't forget to write about ${reminderTopicRef.current} today.`,
+            },
+            trigger: { type: 'date', timestamp: triggerDate },
         });
-        alert(`Notification set for ${date}`);
-        router.push('/userProfile')
-      }
-    
+        alert(`Your reminder has been set for ${date}`);
+     
+    }
+
 
 
 
@@ -91,41 +90,49 @@ const ReminderModal = () => {
             ]);
 
         setLoading(false)
-     
+
         if (error) {
             console.log('Error:', error);
         } else {
 
-        scheduleNotification()
-           Alert.alert(
-                'Reminder Set',
-                `You have selected ${dateString}. We'll remind you to write about your topic on this day.`
-            );
+            scheduleNotification();
+        
+            onClose();
         }
     }
 
 
     return (
 
-        <View style={[styles.centeredView, styles.container]}>
-            <Text>Set Your Reminder</Text>
-        <View>
-        <CalendarIconButton  selectedDate={date} onPress={() => setShowPicker(prev => !prev)} />
-            {showPicker && (
-            <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                onChange={onDateChange}
-                minimumDate={new Date()}
-                />)}
+        <Modal animationType="slide"
+            transparent={true}
+            visible={isVisible}
+            onRequestClose={onClose}>
+            <View style={[styles.centeredView, styles.container]}>
+                <View style={styles.modalView}>
+                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                        <Text>X</Text>
+                    </TouchableOpacity>
+                    <Text>Set Your Reminder</Text>
+                    <CalendarIconButton selectedDate={date} onPress={() => setShowPicker(prev => !prev)} />
+                    {showPicker && (
+                        <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                            minimumDate={new Date()}
+                        />)}
+                    <Input placeholder="Topic" onChangeText={value => reminderTopicRef.current = value} />
+                    <View style={{ width: wp(40) }}>
+                        <ButtonComponent loading={loading} title={'Set'} onPress={createReminderTopic}></ButtonComponent>
+                    </View>
+                </View>
             </View>
 
-            <Input placeholder="Topic" onChangeText={value => reminderTopicRef.current = value} />
-            <View style={{ width: wp(40) }}>
-                <ButtonComponent loading={loading} title={'Set'} onPress={createReminderTopic}></ButtonComponent>
-            </View>
-        </View>
+
+
+        </Modal>
 
 
 
@@ -136,14 +143,12 @@ const ReminderModal = () => {
 const styles = StyleSheet.create({
     button: {
         backgroundColor: theme.colors.primaryDark,
-
         justifyContent: 'center',
         alignItems: 'center',
         borderCurve: 'continuous',
         borderRadius: theme.radius.xl
     },
     text: {
-
         color: 'white',
         fontWeight: theme.fonts.bold
     },
@@ -152,7 +157,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginTop: 22,
-        backgroundColor: "white",
     },
     modalView: {
         margin: 20,
@@ -163,11 +167,12 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
-            height: 2
+            height: 8
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
-        elevation: 5
+        elevation: 5,
+        gap: 30
     },
     cardContentStyle: {
         backgroundColor: 'lightgrey',
@@ -194,8 +199,15 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        gap: 35,
-        paddingHorizontal: wp(5)
+        gap: 45,
+        paddingHorizontal: wp(8)
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        padding: 10,
+        zIndex: 1
     }
 });
 
