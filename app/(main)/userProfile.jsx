@@ -37,6 +37,7 @@ const userProfile = () => {
 
   
   useEffect(() => {
+    if (!user) return;
     const fetchData = async () => {
       await fetchTopics();
     };
@@ -58,7 +59,7 @@ const userProfile = () => {
       }
 
     }
-  }, [postModalVisible, isPostDeleted]);
+  }, [postModalVisible, isPostDeleted, user]);
 
   const handlePostEvent = async (payload) => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
@@ -79,6 +80,8 @@ const userProfile = () => {
   
 
   const fetchPosts = async (topic) => {
+    if (!user) return []; 
+
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -210,7 +213,7 @@ const openMenu = () => {
               height: 228,
               width: "100%"
             }} />
-          <Pressable onPress={() => router.push('home')}>
+          <Pressable onPress={() => router.back()}>
             <Icon name="arrowLeft" />
           </Pressable>
         </View>
@@ -351,7 +354,7 @@ const openMenu = () => {
   )
 }
 
-export default userProfile
+export default userProfile;
 
 
 const styles = StyleSheet.create({

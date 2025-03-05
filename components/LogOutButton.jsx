@@ -11,11 +11,13 @@ const LogOutButton = ({size=24}) => {
     const { setAuth } = useAuth()
 
     const logOut = async () => {
-        setAuth(null)
+      
         const { error } = await supabase.auth.signOut()
         if (error) {
           Alert.alert()
         }
+        setAuth(null)
+        router.push('/welcome');
       }
 
   return (

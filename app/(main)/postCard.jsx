@@ -15,7 +15,6 @@ import { Provider as PaperProvider, Menu, IconButton } from 'react-native-paper'
 
 
 const PostCard = ({ item, router, setIsPostDeleted }) => {
-
   const { user } = useAuth()
 
   const leftComponent = ({ size }) => (
@@ -145,7 +144,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
                   },
                 ]}
               >
-               {user?.id === item.users.id && ( <TouchableOpacity
+               {user?.id === item.user.id && ( <TouchableOpacity
                   onPress={() => {
                     closeMenu();
                     handleDelete();
@@ -156,7 +155,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
                 </TouchableOpacity>
                 )}
 
-                {user?.id !== item.users.id && 
+                {user?.id !== item.user.id && 
                    <TouchableOpacity
                    onPress={() => {
                      closeMenu();
