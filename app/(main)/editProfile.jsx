@@ -60,7 +60,6 @@ const EditProfile = () => {
 
                 Alert.alert('Account Deleted', 'Sorry to see you go!')
             } else {
-                console.log('Failed to delete user:', res.data);
                 setResponse('Failed to delete user: ' + res.data.message);
             }
         } catch (error) {

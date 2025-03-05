@@ -295,7 +295,6 @@ const openMenu = () => {
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                 <TouchableOpacity key={topic.id} onPress={() => {
-                  console.log(topic)
                   setSelectedTopic(topic.id);
                   setPostModalVisible(true);
                 }}>

@@ -49,7 +49,7 @@ const Profile = () => {
       .from('posts')
       .select(`
         *,
-        users (
+        user:users (
           name,
           id, 
           profile_image,
