@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "essences",
+    "name": "Essences",
     "slug": "essences",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.caridadrivera.essences",
+      "bundleIdentifier": "com.ouressences.essences",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app requires access to your photos to allow you to select and share them within the app."
       }
@@ -25,7 +25,7 @@
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.caridadrivera.essences"
+      "package": "com.ouressences.essences"
     },
     "web": {
       "bundler": "metro",

@@ -21,14 +21,12 @@ import { err } from 'react-native-svg'
 const Profile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
   const [bgImage, setbgImage] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuOptionsVisible, setMenuOptionsVisible] = useState(false);
   const {user} = useAuth();
   
   const router = useRouter()
@@ -145,13 +143,13 @@ const Profile = () => {
       }
 
       setMenuPosition({ top, left });
-      setMenuVisible(true);
+      setMenuOptionsVisible(true);
     });
   };
 
     
   const closeMenu = () => {
-    setMenuVisible(false);
+    setMenuOptionsVisible(false);
   };
 
   const blockUser = async () => {
@@ -197,11 +195,11 @@ const Profile = () => {
               style={styles.iconButton}>
               <Text style={styles.icon}>⋮</Text>
           </TouchableOpacity>
-      {menuVisible && (
+      {menuOptionsVisible && (
           <Modal
             transparent={true}
             animationType="fade"
-            visible={menuVisible}
+            visible={menuOptionsVisible}
             onRequestClose={closeMenu}
           >
             <Pressable style={styles.overlay} onPress={closeMenu}>

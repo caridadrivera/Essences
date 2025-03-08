@@ -23,7 +23,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
   const [likes, setLikes] = useState([]);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [postMenuVisible, setPostMenuVisible] = useState(false);
 
  
 
@@ -93,14 +93,16 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
   
 
 
-  const openMenu = () => {
+  const openMenu = (e) => {
     iconRef.current.measure((fx, fy, width, height, px, py) => {
       setMenuPosition({ top: py + height, left: px });
-      setMenuVisible(true);
+      setPostMenuVisible(true);
     });
   };
-  const closeMenu = () => {
-    setMenuVisible(false);
+
+
+  const closeMenu = (e) => {
+    setPostMenuVisible(false);
   };
 
 
@@ -116,7 +118,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
           right={() =>
               <TouchableOpacity
                 ref={iconRef}
-                onPress={openMenu}
+                onPress={(e) => openMenu(e)}
                 style={styles.iconButton}>
                 <Text style={styles.icon}>⋮</Text>
               </TouchableOpacity>
@@ -127,14 +129,16 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
 
 
         {/* Dropdown Menu */}
-        {menuVisible && (
+        {postMenuVisible && (
           <Modal
             transparent={true}
             animationType="fade"
-            visible={menuVisible}
-            onRequestClose={closeMenu}
+            visible={postMenuVisible}
           >
-            <Pressable style={styles.overlay} onPress={closeMenu}>
+            <Pressable style={styles.overlay} onPress={(e)=>{
+              e.stopPropagation();
+              closeMenu(e)
+              }}>
               <View
                 style={[
                   styles.menu,
@@ -145,8 +149,9 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
                 ]}
               >
                {user?.id === item.user.id && ( <TouchableOpacity
-                  onPress={() => {
-                    closeMenu();
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    closeMenu(e);
                     handleDelete();
                   }}
                   style={styles.menuItem}
@@ -157,9 +162,10 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
 
                 {user?.id !== item.user.id && 
                    <TouchableOpacity
-                   onPress={() => {
-                     closeMenu();
-                     handleFlag();
+                   onPress={(e) => {
+                    e.stopPropagation();
+                    closeMenu(e);
+                    handleFlag();
                    }}
                    style={styles.menuItem}
                  >

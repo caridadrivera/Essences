@@ -63,14 +63,14 @@ const HomePostCard = ({ user, item, router}) => {
     }
   }
 
-  const openMenu = () => {
+  const openMenu = (e) => {
     iconRef.current.measure((fx, fy, width, height, px, py) => {
       setMenuPosition({ top: py + height, left: px });
       setMenuVisible(true);
     });
   };
   
-  const closeMenu = () => {
+  const closeMenu = (e) => {
     setMenuVisible(false);
   };
 
@@ -114,7 +114,9 @@ const HomePostCard = ({ user, item, router}) => {
           right={() =>
             <TouchableOpacity
               ref={iconRef}
-              onPress={openMenu}
+              onPress={(e)=> {
+                openMenu(e)
+                e.stopPropagation();}}
               style={styles.iconButton}>
               <Text style={styles.icon}>⋮</Text>
             </TouchableOpacity>
@@ -128,9 +130,11 @@ const HomePostCard = ({ user, item, router}) => {
             transparent={true}
             animationType="fade"
             visible={menuVisible}
-            onRequestClose={closeMenu}
           >
-            <Pressable style={styles.overlay} onPress={closeMenu}>
+            <Pressable style={styles.overlay} onPress={(e) => {
+              e.stopPropagation();
+              closeMenu(e);
+              }}>
               <View
                 style={[
                   styles.menu,
@@ -141,8 +145,10 @@ const HomePostCard = ({ user, item, router}) => {
                 ]}
               >
                {user?.id === item.users.id && ( <TouchableOpacity
-                  onPress={() => {
-                    closeMenu();
+                  onPress={(e) => {
+
+                    e.stopPropagation();
+                    closeMenu(e);
                     handleDelete();
                   }}
                   style={styles.menuItem}
@@ -151,8 +157,9 @@ const HomePostCard = ({ user, item, router}) => {
                 </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                  onPress={() => {
-                    closeMenu();
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    closeMenu(e);
                     handleFlag();
                   }}
                   style={styles.menuItem}

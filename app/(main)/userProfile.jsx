@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { theme } from '../../constants/theme'
 import { supabase } from '../../lib/supabase'
 import Avatar from '../../components/Avatar'
-import { router, useLocalSearchParams} from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { ScrollView } from 'react-native'
 import Icon from '../../assets/icons'
 import PostModal from './postModal'
@@ -29,13 +29,13 @@ const userProfile = () => {
   const [selectedTopic, setSelectedTopic] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
-  const { id, profile_img, background_img, name, bio} = useLocalSearchParams()
+  const { id, profile_img, background_img, name, bio } = useLocalSearchParams()
   const [isPostDeleted, setIsPostDeleted] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [postMenuOptionVisible, setPostMenuOptionVisible] = useState(false);
 
-  
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -68,7 +68,7 @@ const userProfile = () => {
       const response = await getUserData(newPost.userId);
       newPost.user = response.success ? response.data : {};
       newPost.postLikes = newPost.postLikes || [];
-  
+
       const topicId = newPost.topicId;
       setPostsByTopic((prevPosts) => ({
         ...prevPosts,
@@ -76,11 +76,11 @@ const userProfile = () => {
       }));
     }
   };
-  
-  
+
+
 
   const fetchPosts = async (topic) => {
-    if (!user) return []; 
+    if (!user) return [];
 
     const { data, error } = await supabase
       .from('posts')
@@ -107,7 +107,7 @@ const userProfile = () => {
   };
 
   const fetchTopics = async () => {
-  const { data, error } = await supabase
+    const { data, error } = await supabase
       .from('topics')
       .select('id, title, user_id')
       .or(`user_id.is.null,user_id.eq.${user.id}`);
@@ -117,8 +117,8 @@ const userProfile = () => {
     }
 
     setTopics(data);
- 
-  const postsByTopic = {};
+
+    const postsByTopic = {};
     for (const topic of data) {
       const topicPosts = await fetchPosts(topic);
       postsByTopic[topic.id] = topicPosts;
@@ -134,40 +134,40 @@ const userProfile = () => {
     const screenHeight = Dimensions.get('window').height;
     const threshold = 100;
 
-      if (y + screenHeight + threshold >= contentHeight) {
-        fetchMorePosts()
-      }
-      setScrollPosition(y);
+    if (y + screenHeight + threshold >= contentHeight) {
+      fetchMorePosts()
+    }
+    setScrollPosition(y);
   };
 
 
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
-const openMenu = () => {
-  iconRef.current.measure((fx, fy, width, height, px, py) => {
+  const openMenu = () => {
+    iconRef.current.measure((fx, fy, width, height, px, py) => {
 
-    let top = py + height;
-    let left = px;
+      let top = py + height;
+      let left = px;
 
-    const menuWidth = 120;
-    const menuHeight = 50; 
-    if (left + menuWidth > screenWidth) {
-      left = screenWidth - menuWidth - 10; 
-    }
-    if (top + menuHeight > screenHeight) {
-      top = screenHeight - menuHeight - 10; 
-    }
+      const menuWidth = 120;
+      const menuHeight = 50;
+      if (left + menuWidth > screenWidth) {
+        left = screenWidth - menuWidth - 10;
+      }
+      if (top + menuHeight > screenHeight) {
+        top = screenHeight - menuHeight - 10;
+      }
 
-    setMenuPosition({ top, left });
-    setMenuVisible(true);
-  });
-};
+      setMenuPosition({ top, left });
+      setPostMenuOptionVisible(true);
+    });
+  };
 
 
-    
- const closeMenu = () => {
-  setMenuVisible(false);
+
+  const closeMenu = () => {
+    setPostMenuOptionVisible(false);
   };
 
 
@@ -189,14 +189,14 @@ const openMenu = () => {
 
     const fetchedPostsByTopic = {};
     for (const topic of data) {
-        const topicPosts = await fetchPosts(topic);
+      const topicPosts = await fetchPosts(topic);
       fetchedPostsByTopic[topic.id] = topicPosts;
     }
 
     setPostsByTopic(fetchedPostsByTopic);
   }
 
-  const navigateToBlockedList = () =>{
+  const navigateToBlockedList = () => {
     router.push('blockedUsers')
   }
 
@@ -223,78 +223,86 @@ const openMenu = () => {
             uri={profile_img}
             style={styles.profilePic} />
         </View>
-      
-  <View>
-    <TouchableOpacity
-      ref={iconRef}
-      onPress={openMenu}
-      style={styles.iconButton}>
-      <Text style={styles.icon}>⋮</Text>
-    </TouchableOpacity>
-    {menuVisible && (
-      <Modal
-        transparent={true}
-        animationType="fade"
-        visible={menuVisible}
-        onRequestClose={closeMenu}
-      >
-        <Pressable style={styles.overlay} onPress={closeMenu} >
-            <View
-              style={[
-                styles.menu,
-                {
-                  top: menuPosition.top,
-                  left: menuPosition.left,
-                },
-              ]}
+
+        <View>
+          <TouchableOpacity
+            ref={iconRef}
+            onPress={(e) => {
+              e.stopPropagation();
+              openMenu(e);
+            }}
+            style={styles.iconButton}>
+            <Text style={styles.icon}>⋮</Text>
+          </TouchableOpacity>
+          {postMenuOptionVisible && (
+            <Modal
+              transparent={true}
+              animationType="fade"
+              visible={postMenuOptionVisible}
             >
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  closeMenu();
-                  navigateToBlockedList();
-                }}
-              >
-                <Text style={styles.menuText}>Blocked List</Text>
-              </TouchableOpacity>
+              <Pressable style={styles.overlay} onPress={(e) => {
+                e.stopPropagation();
+                closeMenu(e);
+              }}>
+                <View
+                  style={[
+                    styles.menu,
+                    {
+                      top: menuPosition.top,
+                      left: menuPosition.left,
+                    },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      closeMenu();
+                      navigateToBlockedList();
+                    }}
+                  >
+                    <Text style={styles.menuText}>Blocked List</Text>
+                  </TouchableOpacity>
 
-                      
-               <TouchableOpacity onPress={() => {
-                     router.push('editProfile');
-                     closeMenu();
-                     }}
-                     style={styles.menuItem}
-                   >
-                  <Text>Edit profile</Text>
-                </TouchableOpacity> 
 
-                 <TouchableOpacity onPress={() => {
-                     setReminderModalVisible(true);
-                     closeMenu();
-                     }}
-                     style={styles.menuItem}
-                   >
-                  <Text>Set reminder</Text>
-                </TouchableOpacity>                     
-          </View>
-        </Pressable>
-      </Modal>
-    )}
-    </View>
-  </View>
-    <View style={{ alignItems: 'center'}}>
-      <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-      <Text style={{ fontStyle: 'italic'}}>{bio}</Text>
-      <Text style={{ fontWeight: 'bold' }}>__________________</Text>
-    </View>
+                  <TouchableOpacity onPress={(e) => {
+                      e.stopPropagation();
+                      router.push('editProfile');
+                      closeMenu();
+                  }}
+                    style={styles.menuItem}
+                  >
+                    <Text>Edit profile</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={(e) => {
+                    setReminderModalVisible(true);
+                    e.stopPropagation();
+                    closeMenu();
+                  }}
+                    style={styles.menuItem}
+                  >
+                    <Text>Set reminder</Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
+            </Modal>
+          )}
+        </View>
+      </View>
+      <View style={{ alignItems: 'center' }}>
+        <Text style={{ fontWeight: 'bold' }}>{name}</Text>
+        <Text style={{ fontStyle: 'italic' }}>{bio}</Text>
+        <Text style={{ fontWeight: 'bold' }}>__________________</Text>
+      </View>
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
         {topics.map(topic => (
           <View key={topic.id} >
             <View style={{ alignItems: 'center', marginTop: 20 }}>
-              { topic.user_id === user.id ? <Icon name="hexagonIcon" fill={theme.colors.yellow} /> :
-                 <Icon name="hexagonIcon"  />}
+              {topic.user_id === user.id ? <Icon name="hexagonIcon" fill={theme.colors.yellow} /> :
+                <Icon name="hexagonIcon" />}
               <View style={{ flexDirection: 'row' }}>
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                 <TouchableOpacity key={topic.id} onPress={() => {
@@ -309,17 +317,17 @@ const openMenu = () => {
             </View>
             <ScrollView horizontal={true} >
               {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (postsByTopic[topic.id] || []).map(filteredPost => (
-            
-                  <PostCard
-                    key={filteredPost.id}
-                    item={filteredPost}
-                    router={router}
-                    setIsPostDeleted={setIsPostDeleted} />
-            
-              )):(
-                   <View style={{ alignItems: 'center', marginLeft: 35 }}>
-                    <Text >No posts on this topic yet</Text>
-                  </View>
+
+                <PostCard
+                  key={filteredPost.id}
+                  item={filteredPost}
+                  router={router}
+                  setIsPostDeleted={setIsPostDeleted} />
+
+              )) : (
+                <View style={{ alignItems: 'center', marginLeft: 35 }}>
+                  <Text >No posts on this topic yet</Text>
+                </View>
               )}
 
             </ScrollView>
@@ -340,12 +348,18 @@ const openMenu = () => {
         isVisible={postModalVisible}
         user={user}
         topicId={selectedTopic}
-        onClose={() => setPostModalVisible(false) }
+        onClose={(e) => {
+          e.stopPropagation();
+          setPostModalVisible(false)
+        }}
       />
 
-      <ReminderModal 
+      <ReminderModal
         isVisible={reminderModalVisible}
-        onClose={()=> setReminderModalVisible(false)}
+        onClose={(e) => {
+          e.stopPropagation();
+          setReminderModalVisible(false)
+        }}
       />
 
     </ScreenWrapper>
@@ -391,7 +405,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 7
   },
- 
+
   header: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -417,7 +431,7 @@ const styles = StyleSheet.create({
   menuItem: {
     padding: 10,
     borderBottomWidth: 1,  // Add a bottom border
-    borderBottomColor: 'gray', 
+    borderBottomColor: 'gray',
     fontSize: 12
   },
   iconButton: {
@@ -428,7 +442,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bolder',
     color: 'blue',
   },
-  overlay:{
+  overlay: {
     flex: 1
   }
 
