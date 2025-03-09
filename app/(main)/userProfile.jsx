@@ -274,7 +274,7 @@ const userProfile = () => {
                     <Text>Edit profile</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={(e) => {
+                  {/* <TouchableOpacity onPress={(e) => {
                       e.stopPropagation();
                       setReminderModalVisible(true);
                       closeMenu();
@@ -282,7 +282,7 @@ const userProfile = () => {
                     style={styles.menuItem}
                   >
                     <Text>Set reminder</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </Pressable>
             </Modal>

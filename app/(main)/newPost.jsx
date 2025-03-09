@@ -1,99 +1,123 @@
-import { 
-  StyleSheet, Text, View, Modal, TouchableOpacity, 
-  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Alert, ScrollView
-} from 'react-native';
-import React, { useState, useRef } from 'react';
-import RichTextEditor from '../../components/RichTextEditor';
-import { createOrUpdatePost } from '../../services/postService';
-import { analyzeText } from '../../services/perspecticeService';
+import {
+  StyleSheet, Text, View, Modal, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback,
+  Keyboard
+} from 'react-native'
+import React, { useState, useRef } from 'react'
+import RichTextEditor from '../../components/RichTextEditor'
+import { Alert } from 'react-native'
+import { createOrUpdatePost } from '../../services/postService'
+import { analyzeText } from '../../services/perspecticeService'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 
 const NewPost = ({ isVisible, user, topicId, onClose }) => {
-  const bodyRef = useRef("");
-  const editorRef = useRef("");
-  const [loading, setLoading] = useState(false);
+
+  const bodyRef = useRef("")
+  const editorRef = useRef("")
+  const [loading, setLoading] = useState(false)
   const [toxicityScore, setToxicityScore] = useState(null);
 
   const onSubmit = async () => {
     if (!bodyRef.current) {
-      Alert.alert("Post", "Your post is empty :(");
-      return;
+      Alert.alert("Post", "Your post is empty :(")
+      return
     }
 
     try {
       const score = await analyzeText(bodyRef.current);
       setToxicityScore(score);
 
-      const data = {
-        body: bodyRef.current,
-        userId: user?.id,
-        topicId: topicId,
-        isToxic: score > 0.7
-      };
-
       if (score > 0.7) {
         Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
-      }
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: true
+        }
+        processPost(data)
 
-      processPost(data);
+      } else {
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: false
+        }
+        processPost(data)
+      }
 
     } catch (error) {
       Alert.alert('Error', 'Unable to analyze the content.');
     }
-  };
+
+
+
+  }
 
   const processPost = async (data) => {
-    setLoading(true);
-    let response = await createOrUpdatePost(data);
-    setLoading(false);
+
+    setLoading(true)
+    let response = await createOrUpdatePost(data)
+    setLoading(false)
 
     if (response.success) {
-      bodyRef.current = '';
+      bodyRef.current = ''
       editorRef.current?.setContentHTML('');
       onClose();
     } else {
-      Alert.alert('Post', response.msg);
+      Alert.alert('Post', response.msg)
     }
-  };
+  }
+
 
   return (
     <Modal
       animationType="slide"
-      transparent
+      transparent={true}
       visible={isVisible}
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
-        style={{ flex: 1 }}
+      onRequestClose={onClose}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContainer}
+        enableOnAndroid={true}
+        extraScrollHeight={100} // 🔹 Adjust this value if needed
+        keyboardShouldPersistTaps="handled"
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <ScrollView 
-                contentContainerStyle={styles.scrollContainer}
-                keyboardShouldPersistTaps="handled"
-              >
-                <RichTextEditor 
-                  editorRef={editorRef} 
-                  onChange={body => (bodyRef.current = body)}
-                />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          {/* Dismiss keyboard when tapping outside */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+
+                <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
                 <View style={styles.media}>
-                  <TouchableOpacity style={[styles.button, styles.buttonClose]} onPress={onClose}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={onClose}
+                  >
                     <Text style={styles.textStyle}>Close</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.button, styles.buttonClose]} onPress={onSubmit}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={onSubmit}
+                  >
                     <Text style={styles.textStyle}>Post</Text>
                   </TouchableOpacity>
+
                 </View>
-              </ScrollView>
+              </View>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </Modal>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   centeredView: {
@@ -106,19 +130,21 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 20,
+    padding: 35,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5,
-    width: "90%",
-    maxHeight: "80%" // Ensures modal doesn't take up the full screen
+    elevation: 5
   },
-  scrollContainer: {
-    flexGrow: 1,
-    width: "100%"
+  cardContentStyle: {
+    backgroundColor: 'lightgrey',
+    borderRadius: 10,
+    padding: 10
   },
   button: {
     borderRadius: 20,
@@ -140,4 +166,5 @@ const styles = StyleSheet.create({
   }
 });
 
-export default NewPost;
+
+export default NewPost

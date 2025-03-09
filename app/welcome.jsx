@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase'
 import { getUserImage } from '../services/userProfileImage'
 import { Image } from 'expo-image'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const Welcome = () => {
 
@@ -84,6 +85,12 @@ const Welcome = () => {
   return (
     <ScreenWrapper bg="white">
       <StatusBar style="dark" />
+      <KeyboardAwareScrollView
+              contentContainerStyle={styles.scrollContainer}
+              enableOnAndroid={true}
+              extraScrollHeight={100} // 🔹 Adjust this value if needed
+              keyboardShouldPersistTaps="handled"
+            >
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"} 
         style={{ flex: 1 }}
@@ -219,6 +226,7 @@ const Welcome = () => {
       </View>
       </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </ScreenWrapper>
   )
 }

@@ -51,6 +51,7 @@
     "react-native-calendars": "^1.1308.1",
     "react-native-date-picker": "^5.0.10",
     "react-native-gesture-handler": "~2.20.2",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-paper": "^5.12.5",
     "react-native-pell-rich-editor": "^1.9.0",
     "react-native-popup-menu": "^0.16.1",
@@ -64,7 +65,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "supabase": "^2.2.1"
+    "supabase": "^2.2.1",
+    "expo-device": "~7.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
