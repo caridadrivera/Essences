@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View,  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useRef, useState } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import Icon from '../assets/icons'
@@ -49,6 +49,12 @@ const Login = () => {
   }
   return (
     <ScreenWrapper bg="white"> 
+       <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        style={{ flex: 1 }}
+      >
+        {/* Dismiss keyboard when tapping outside */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
        <View style={styles.container}>
         <BackButton router={router}/>
         <View>
@@ -68,12 +74,16 @@ const Login = () => {
             icon={<Icon name="mailIcon" size={26} strokeWidth={1.6}/>} 
             placeholder="Enter your email"
             onChangeText={value=> emailRef.current = value}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
             />
             <Input 
             icon={<Icon name="lockIcon" size={26} strokeWidth={1.6}/>} 
             placeholder="Enter your password"
             secureTextEntry
             onChangeText={value=>passwordRef.current = value}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
             />
         </View>
 
@@ -96,7 +106,8 @@ const Login = () => {
           </Pressable>
         </View>
       </View>
-
+      </TouchableWithoutFeedback> 
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   )
 }

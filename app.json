@@ -16,8 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ouressences.essences",
+      "simulator": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "This app requires access to your photos to allow you to select and share them within the app."
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, Pressable, Modal, Alert, ScrollView, Button } from 'react-native'
+import { View, StyleSheet, Text, Pressable, Modal, Alert, ScrollView, Button,   KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState, useRef } from 'react'
 import ScreenWrapper from '../components/ScreenWrapper'
 import { StatusBar } from 'expo-status-bar'
@@ -84,31 +84,38 @@ const Welcome = () => {
   return (
     <ScreenWrapper bg="white">
       <StatusBar style="dark" />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        style={{ flex: 1 }}
+      >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-
-
         <View style={{ gap: 8 }}>
           <Image source={iconImg} style={{ height: 208, width: "100%" }} />
           <Text style={styles.punchline}> Your place to share stories... </Text>
         </View>
-
-
         <View style={styles.form}>
           <Input
             icon={<Icon name="userIcon" size={26} strokeWidth={1.6} />}
             placeholder="Enter your name"
             onChangeText={value => nameRef.current = value}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
           />
           <Input
             icon={<Icon name="mailIcon" size={26} strokeWidth={1.6} />}
             placeholder="Enter your email"
             onChangeText={value => emailRef.current = value}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
           />
           <Input
             icon={<Icon name="lockIcon" size={26} strokeWidth={1.6} />}
             placeholder="Enter your password"
             secureTextEntry
             onChangeText={value => passwordRef.current = value}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
           />
         </View>
 
@@ -210,6 +217,8 @@ const Welcome = () => {
           </View>
         </Modal>
       </View>
+      </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   )
 }

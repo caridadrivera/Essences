@@ -52,15 +52,25 @@ const ReminderModal = ({ onClose, isVisible }) => {
     };
 
     async function scheduleNotification() {
-        const triggerDate = new Date(date);
-        triggerDate.setMinutes(triggerDate.getMinutes())
+        const dateParts = date.split(", ");
+    const [month, day, year] = dateParts[0].split("/").map(Number);
+    const [time, meridian] = dateParts[1].split(" ");
+    const [hours, minutes, seconds] = time.split(":").map(Number);
+    
+    let adjustedHours = meridian === "PM" && hours !== 12 ? hours + 12 : hours;
+    if (meridian === "AM" && hours === 12) adjustedHours = 0;
+
+    const triggerDate = new Date(year, month - 1, day, adjustedHours, minutes, seconds);
+
+    console.log("Parsed Date (local):", triggerDate.toLocaleString());
+
 
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Reminder",
                 body: `Don't forget to write about ${reminderTopicRef.current} today.`,
             },
-            trigger: { type: 'date', timestamp: triggerDate },
+            trigger: {   date: triggerDate},
         });
         alert(`Your reminder has been set for ${date}`);
      

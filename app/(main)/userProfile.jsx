@@ -78,7 +78,6 @@ const userProfile = () => {
   };
 
 
-
   const fetchPosts = async (topic) => {
     if (!user) return [];
 
@@ -229,7 +228,7 @@ const userProfile = () => {
             ref={iconRef}
             onPress={(e) => {
               e.stopPropagation();
-              openMenu(e);
+              openMenu();
             }}
             style={styles.iconButton}>
             <Text style={styles.icon}>⋮</Text>
@@ -242,7 +241,7 @@ const userProfile = () => {
             >
               <Pressable style={styles.overlay} onPress={(e) => {
                 e.stopPropagation();
-                closeMenu(e);
+                closeMenu();
               }}>
                 <View
                   style={[
@@ -276,9 +275,9 @@ const userProfile = () => {
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={(e) => {
-                    setReminderModalVisible(true);
-                    e.stopPropagation();
-                    closeMenu();
+                      e.stopPropagation();
+                      setReminderModalVisible(true);
+                      closeMenu();
                   }}
                     style={styles.menuItem}
                   >
