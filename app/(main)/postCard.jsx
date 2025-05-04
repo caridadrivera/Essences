@@ -25,7 +25,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
   const iconRef = useRef(null);
   const [postMenuVisible, setPostMenuVisible] = useState(false);
 
- 
+
 
   useEffect(() => {
     setLikes(item?.postLikes)
@@ -79,18 +79,18 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
     try {
       const { error } = await supabase
         .from('posts')
-        .update({ isFlagged: true }) 
-        .match({ id: item.id, userId: user.id }); 
-  
+        .update({ isFlagged: true })
+        .match({ id: item.id, userId: user.id });
+
       if (error) throw error;
       Alert.alert('Flag', 'This post has been flagged');
-      
-      router.push('userProfile'); 
+
+      router.push('userProfile');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
-  
+
 
 
   const openMenu = (e) => {
@@ -116,13 +116,13 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
           subtitleStyle={{ fontSize: 14 }}
           left={leftComponent}
           right={() =>
-              <TouchableOpacity
-                ref={iconRef}
-                onPress={(e) => openMenu(e)}
-                style={styles.iconButton}>
-                <Text style={styles.icon}>⋮</Text>
-              </TouchableOpacity>
-            
+            <TouchableOpacity
+              ref={iconRef}
+              onPress={(e) => openMenu(e)}
+              style={styles.iconButton}>
+              <Text style={styles.icon}>⋮</Text>
+            </TouchableOpacity>
+
           }
 
         />
@@ -135,10 +135,10 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
             animationType="fade"
             visible={postMenuVisible}
           >
-            <Pressable style={styles.overlay} onPress={(e)=>{
+            <Pressable style={styles.overlay} onPress={(e) => {
               e.stopPropagation();
               closeMenu(e)
-              }}>
+            }}>
               <View
                 style={[
                   styles.menu,
@@ -148,7 +148,7 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
                   },
                 ]}
               >
-               {user?.id === item.user.id && ( <TouchableOpacity
+                {user?.id === item.user.id && (<TouchableOpacity
                   onPress={(e) => {
                     e.stopPropagation();
                     closeMenu(e);
@@ -160,20 +160,20 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
                 </TouchableOpacity>
                 )}
 
-                {user?.id !== item.user.id && 
-                   <TouchableOpacity
-                   onPress={(e) => {
-                    e.stopPropagation();
-                    closeMenu(e);
-                    handleFlag();
-                   }}
-                   style={styles.menuItem}
-                 >
-                   <Text style={styles.menuText}>Flag</Text>
-                 </TouchableOpacity>
-                
+                {user?.id !== item.user.id &&
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      closeMenu(e);
+                      handleFlag();
+                    }}
+                    style={styles.menuItem}
+                  >
+                    <Text style={styles.menuText}>Flag</Text>
+                  </TouchableOpacity>
+
                 }
-               
+
               </View>
             </Pressable>
           </Modal>
@@ -201,15 +201,18 @@ const PostCard = ({ item, router, setIsPostDeleted }) => {
           </Text>
         </Card.Content>
 
-        <Card.Actions>
-          <TouchableOpacity key={liked} onPress={onLike}>
-            <Icon name="hexagonIcon" fill={liked ? theme.colors.likeYellow : 'none'} />
-          </TouchableOpacity>
-          <Text style={styles.count}>
-            {
-              likes?.length
-            }
-          </Text>
+        <Card.Actions tyle={{ paddingVertical: 8 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+
+            <TouchableOpacity key={liked} onPress={onLike}>
+              <Icon name="hexagonIcon" fill={liked ? theme.colors.likeYellow : 'none'} />
+            </TouchableOpacity>
+            <Text style={{ margin: 5 }}>
+              {
+                likes?.length
+              }
+            </Text>
+          </View>
 
         </Card.Actions>
       </Card>

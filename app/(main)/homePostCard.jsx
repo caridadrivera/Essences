@@ -95,7 +95,7 @@ const HomePostCard = ({ user, item, router}) => {
 
     return (
       
-       <Card style={{ margin: 20, width: 300, display: 'flex', flexDirection: 'column' }} key={item.id}>
+       <Card style={{ margin: 20, width: 270, display: 'flex', flexDirection: 'column' }} key={item.id}>
         <Card.Title
           subtitle={item.users? item.users.name : item.name}
           titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
@@ -193,17 +193,19 @@ const HomePostCard = ({ user, item, router}) => {
           </Text>
         </Card.Content>
   
-        <Card.Actions  style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', padding: 10 }}>
-          <TouchableOpacity key={liked} onPress={onLike}>
-            <Icon name="hexagonIcon" fill={liked? theme.colors.likeYellow : 'none'} style={{BorderFullIcon: "bold"}}/>
-          </TouchableOpacity>
-          <Text style={styles.count}>
-            {
-              likes?.length
-            }
-          </Text>
-  
-        </Card.Actions>
+        <Card.Actions style={{ paddingVertical: 8}}>
+  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+    <TouchableOpacity key={liked} onPress={onLike}>
+      <Icon
+        name="hexagonIcon"
+        fill={liked ? theme.colors.likeYellow : 'none'}
+        style={{ BorderFullIcon: 'bold' }}
+      />
+    </TouchableOpacity>
+    <Text style={{ margin: 5}}>{likes?.length}</Text>
+  </View>
+</Card.Actions>
+
       </Card>
     );
 };
@@ -250,6 +252,7 @@ const styles = StyleSheet.create({
       fontSize: 16,
       color: '#333',
     }
+
     
 });
 

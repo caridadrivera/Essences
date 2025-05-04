@@ -2,36 +2,37 @@
   "expo": {
     "name": "Essences",
     "slug": "essences",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "",
+      "image": "./assets/icon.png", 
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ouressences.essences",
+      "bundleIdentifier": "com.caridadrivera.essences",
       "simulator": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "package": "com.caridadrivera.essences",
       "adaptiveIcon": {
-        "foregroundImage": "",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ouressences.essences"
+      "permissions": [] 
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": ""
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-router",

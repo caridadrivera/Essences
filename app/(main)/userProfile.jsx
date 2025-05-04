@@ -353,13 +353,13 @@ const userProfile = () => {
         }}
       />
 
-      <ReminderModal
+      {/* <ReminderModal
         isVisible={reminderModalVisible}
         onClose={(e) => {
           e.stopPropagation();
           setReminderModalVisible(false)
         }}
-      />
+      /> */}
 
     </ScreenWrapper>
 

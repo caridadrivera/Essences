@@ -1,12 +1,11 @@
-import { StyleSheet, Text, View, Modal, TouchableOpacity, Button, Platform, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView } from 'react-native';
-import React, { useState, useRef, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { StyleSheet, Text, View, Modal, TouchableOpacity, Button, Platform, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView } from 'react-native'
+import React, { useState, useRef, useEffect } from 'react'
+import { Alert } from 'react-native'
 import { Calendar } from 'react-native-calendars';
 import Input from '../../components/Input';
 import { wp } from '../../helpers/common';
 import CalendarIconButton from '../../components/CalendarButton';
 import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
 import { supabase } from '../../lib/supabase';
 import ButtonComponent from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -127,35 +126,35 @@ const ReminderModal = ({ onClose, isVisible }) => {
                 extraScrollHeight={100} // 🔹 Adjust this value if needed
                 keyboardShouldPersistTaps="handled"
             >
-                   <KeyboardAvoidingView
-                          behavior={Platform.OS === "ios" ? "padding" : "height"}
-                          style={{ flex: 1 }}
-                        >
-                              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={[styles.centeredView, styles.container]}>
-                        <View style={styles.modalView}>
-                            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                                <Text>X</Text>
-                            </TouchableOpacity>
-                            <Text>Set Your Reminder</Text>
-                            <CalendarIconButton selectedDate={date} onPress={() => setShowPicker(prev => !prev)} />
-                            {showPicker && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display="default"
-                                    onChange={onDateChange}
-                                    minimumDate={new Date()}
-                                />)}
-                            <Input placeholder="Topic" onChangeText={value => reminderTopicRef.current = value} />
-                            <View style={{ width: wp(40) }}>
-                                <ButtonComponent loading={loading} title={'Set'} onPress={createReminderTopic}></ButtonComponent>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View style={[styles.centeredView, styles.container]}>
+                            <View style={styles.modalView}>
+                                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                                    <Text>X</Text>
+                                </TouchableOpacity>
+                                <Text>Set Your Reminder</Text>
+                                <CalendarIconButton selectedDate={date} onPress={() => setShowPicker(prev => !prev)} />
+                                {showPicker && (
+                                    <DateTimePicker
+                                        value={date}
+                                        mode="date"
+                                        display="default"
+                                        onChange={onDateChange}
+                                        minimumDate={new Date()}
+                                    />)}
+                                <Input placeholder="Topic" onChangeText={value => reminderTopicRef.current = value} />
+                                <View style={{ width: wp(40) }}>
+                                    <ButtonComponent loading={loading} title={'Set'} onPress={createReminderTopic}></ButtonComponent>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </TouchableWithoutFeedback>
+                    </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
-              
+
             </KeyboardAwareScrollView>
 
 

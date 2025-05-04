@@ -197,8 +197,7 @@ const Home = ({ filteredPost }) => {
           scrollEventThrottle={16}>
           {topics.map(topic => (
             <View key={topic.id} >
-              <View  style={{ alignItems: 'center', marginTop: 30 }}>
-                  <Icon name="hexagonIcon" fill={theme.colors.yellow} />
+              <View  style={{marginTop: 30 }}>
                     <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
             
               </View>
