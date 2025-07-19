@@ -20,6 +20,7 @@
     "@hugeicons/react-native-pro": "^0.1.7",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
+    "@react-native-seoul/masonry-list": "^1.4.2",
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.47.10",
     "axios": "^1.7.7",
@@ -29,6 +30,7 @@
     "expo-calendar": "~14.0.6",
     "expo-constants": "~17.0.5",
     "expo-dev-client": "~5.0.12",
+    "expo-device": "~7.0.2",
     "expo-file-system": "~18.0.10",
     "expo-font": "~13.0.3",
     "expo-image": "~2.0.6",
@@ -65,8 +67,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "supabase": "^2.2.1",
-    "expo-device": "~7.0.2"
+    "supabase": "^2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

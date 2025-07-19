@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, Dimensions, SafeAreaView, StatusBar, FlatList } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../components/ScreenWrapper'
 import { supabase } from '../../lib/supabase'
@@ -19,11 +19,16 @@ import { getUserImage } from '../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { fetchNotifications } from '../../services/notificationService'
 import { useNotification } from '../../context/NotificationContext'
+import TopicLayout from '../../components/TopicLayout'
+import TopicCard from './topicCard'
+import { useRouter } from 'expo-router'
 
-const Home = ({ filteredPost }) => {
+
+const Home = ({ }) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
   const { user, setAuth } = useAuth();
+  const router = useRouter();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -111,18 +116,12 @@ const Home = ({ filteredPost }) => {
   };
   let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
-  const handleScroll = (event) => {
-    const y = event.nativeEvent.contentOffset.y;
-    const contentHeight = event.nativeEvent.contentSize.height;
-    const screenHeight = Dimensions.get('window').height;
-
-    const threshold = 100;
-
-    if (y + screenHeight + threshold >= contentHeight) {
-      fetchMorePosts()
-    }
-
-    setScrollPosition(y);
+  const handleTopicPress = async (topic) => {
+    console.log('Topic pressed:', topic);
+    router.push({
+      pathname: `/postsByTopic/${topic.id}`,
+      params: { topicId: topic.id, title: topic.title }
+    });
   };
 
   const fetchMorePosts = async () => {
@@ -154,11 +153,11 @@ const Home = ({ filteredPost }) => {
   return (
 
 
-    <ScreenWrapper>
+    <ScreenWrapper bg={'white'}>
       <View style={styles.header}>
         <Image source={iconImg} style={{
-          height: 148,
-          width: "78%"
+          height: 108,
+          width: "50%"
         }} />
 
         <View style={styles.icons}>
@@ -177,7 +176,7 @@ const Home = ({ filteredPost }) => {
             setNotificationCount(0)
             router.push('notifications')
           }}>
-            <Icon name="hexagonIcon" fill={theme.colors.roseLight} />
+            <Icon name="hexagonIcon" fill={theme.colors.likeYellow} />
             {notificationCount > 0 && (
               <View style={styles.pill}>
                 <Text style={styles.pillText}>{notificationCount}</Text>
@@ -189,61 +188,36 @@ const Home = ({ filteredPost }) => {
       </View>
 
       {loading ? (
-        <View style={{ marginVertical: 30, alignItems: 'center' }}>
+        <View style={{ marginVertical: 0}}>
           <Loading />
         </View>) : (
-        <ScrollView
-          onScroll={handleScroll}
-          scrollEventThrottle={16}>
-          {topics.map(topic => (
-            <View key={topic.id} >
-              <View  style={{marginTop: 30 }}>
-                    <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-            
-              </View>
-              <ScrollView horizontal={true}>
-                {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (
-                  postsByTopic[topic.id].map(filteredPost => (
-                    <View key={filteredPost.id}>
-                      <HomePostCard
-                        user={user}
-                        item={filteredPost}
-                        router={router}
-                      />
-                    </View>
-                  ))
-                ) : (
-                  <View style={{ alignItems: 'center', marginLeft: 35 }}>
-                    <Text >No posts on this topic yet</Text>
-                  </View>
-                )}
+    <SafeAreaView style={styles.topicContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
 
-              </ScrollView>
-            </View>
-          ))}
-
-        {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
-                  <Loading />
-                </View>) : (
-                  <View style={{ marginVertical: 30, alignItems: 'center' }}>
-                    <Text >No more posts</Text>
-                  </View>
-                )}
-        </ScrollView>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Hives</Text>
+      </View>       
+          <View  style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
+              <FlatList
+                data={topics}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2}
+                contentContainerStyle={{ paddingVertical: 16 }}
+                columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 16 }}      
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+            <TopicCard topic={item} onPress={() => handleTopicPress(item)} />
+          )}
+        />
+      </View>
+    
+     </SafeAreaView>
       )}
-      
-      <PostModal
-        isVisible={modalVisible}
-        post={selectedPost}
-        onClose={() => setModalVisible(false)}
-      />
     </ScreenWrapper>
-
-
   )
 }
 
-export default Home
+export default Home;
 
 const styles = StyleSheet.create({
   container: {
@@ -256,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-    marginHorizontal: wp(4),
+    marginHorizontal: wp(2),
     borderRadius: 28
   },
   headerText: {
@@ -328,10 +302,6 @@ const styles = StyleSheet.create({
     paddingTop: 28
   },
   pill: {
-    position: 'absolute',
-    right: -10,
-    top: -4,
-    height: hp(2.2),
     width: hp(2.2),
     justifyContent: 'center',
     alignItems: 'center',
@@ -342,8 +312,25 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: hp(1.2),
     fontWeight: theme.fonts.bold
+  },
+    topicContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  topicsHeader: {
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  scrollContent: {
+    paddingBottom: 10,
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 16,
   }
-
-
 
 })

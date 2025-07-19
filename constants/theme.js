@@ -12,7 +12,7 @@ export const theme = {
 
     yellow: '#e8e1a2',
     likeYellow: '#ebd50e',
-    roseLight: '#f87171'
+    amber: '#1E40AF'
 
  },
  fonts: {

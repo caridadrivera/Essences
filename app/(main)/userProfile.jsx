@@ -141,7 +141,7 @@ const userProfile = () => {
 
 
   const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
+  const screenHeight = Dimensions.get('window').height; 
 
   const openMenu = () => {
     iconRef.current.measure((fx, fy, width, height, px, py) => {
@@ -162,8 +162,6 @@ const userProfile = () => {
       setPostMenuOptionVisible(true);
     });
   };
-
-
 
   const closeMenu = () => {
     setPostMenuOptionVisible(false);
@@ -198,9 +196,6 @@ const userProfile = () => {
   const navigateToBlockedList = () => {
     router.push('blockedUsers')
   }
-
-
-
 
   return (
     <ScreenWrapper >
