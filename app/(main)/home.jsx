@@ -117,7 +117,7 @@ const Home = ({ }) => {
   let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   const handleTopicPress = async (topic) => {
-    console.log('Topic pressed:', topic);
+
     router.push({
       pathname: `/postsByTopic/${topic.id}`,
       params: { topicId: topic.id, title: topic.title }

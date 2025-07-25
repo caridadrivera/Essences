@@ -38,7 +38,6 @@ export const uploadFile = async (folderName, fileUri, isImage = true) =>{
         contentType: isImage ? 'image/*' :'video/*'
     })
     if(error){
-        console.log('file upload error', error)
         return {success: false, msg: 'could not upload img'}
     }
 

@@ -80,7 +80,7 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContainer}
         enableOnAndroid={true}
-        extraScrollHeight={100} // 🔹 Adjust this value if needed
+        extraScrollHeight={100} 
         keyboardShouldPersistTaps="handled"
       >
         <KeyboardAvoidingView

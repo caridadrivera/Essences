@@ -6,19 +6,94 @@ import { StyleSheet, View, Text, Pressable, TouchableOpacity, Modal, Alert } fro
 import { supabase } from '../../../lib/supabase';
 import { theme } from '../../../constants/theme';
 import Icon from '../../../assets/icons';
+import RichTextEditor from '../../../components/RichTextEditor';
+import { useRef } from 'react';
+import { useAuth } from '../../../context/AuthContext';
+import { analyzeText } from '../../../services/perspecticeService';
+import { createOrUpdatePost } from '../../../services/postService';
+import { getUserData } from '../../../services/userService';
 
 const PostsByTopic = () => {
   const router = useRouter();
   const { topicId, title } = useLocalSearchParams();
   const [posts, setPosts] = useState([]);
-  const [bottomSheetType, setBottomSheetType] = useState(null); // 'topic' | 'post'
+  const [bottomSheetType, setBottomSheetType] = useState(null); // 'topic' | 'post' | 'newPost'
   const [selectedPost, setSelectedPost] = useState(null);
+  const bodyRef = useRef("")
+  const editorRef = useRef("")
+  const [loading, setLoading] = useState(false)
+  const [toxicityScore, setToxicityScore] = useState(null);
+  const { user, setAuth } = useAuth();
+  const [postModalVisible, setPostModalVisible] = useState(false);
+
+
 
   useEffect(() => {
-    if (!topicId) return;
-    getPostsByTopic();
-  }, []);
+    if (!topicId || !user) return;
 
+    getPostsByTopic();
+
+    const postChannel = supabase
+      .channel('realtime:posts')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, handlePostEvent)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(postChannel);
+    };
+  }, [topicId, user]);
+
+  const onSubmit = async () => {
+    if (!bodyRef.current) {
+      Alert.alert("Post", "Your post is empty :(")
+      return
+    }
+
+    try {
+      const score = await analyzeText(bodyRef.current);
+      
+      setToxicityScore(score);
+
+      if (score > 0.7) {
+        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: true
+        }
+        processPost(data)
+
+      } else {
+        const data = {
+          body: bodyRef.current,
+          userId: user?.id,
+          topicId: topicId,
+          isToxic: false
+        }
+        processPost(data);
+        setBottomSheetType(null);
+      }
+
+    } catch (error) {
+      Alert.alert('Error', 'Unable to analyze the content.');
+    }
+
+  }
+
+  const processPost = async (data) => {
+    setLoading(true)
+    let response = await createOrUpdatePost(data)
+    setLoading(false)
+
+    if (response.success) {
+      bodyRef.current = ''
+      editorRef.current?.setContentHTML('');
+      setPostModalVisible(false);
+    } else {
+      Alert.alert('Post', response.msg)
+    }
+  }
   const getPostsByTopic = async () => {
     const { data, error } = await supabase
       .from('posts')
@@ -57,6 +132,27 @@ const PostsByTopic = () => {
     setSelectedPost(null);
   };
 
+
+
+  const addPost = () => {
+    setBottomSheetType('newPost');
+    setPostModalVisible(true);
+  };
+
+  const handlePostEvent = async (payload) => {
+    if (payload.eventType === 'INSERT' && payload?.new?.id) {
+      let newPost = { ...payload.new };
+      const response = await getUserData(newPost.userId);
+     
+      newPost.user = response.success ? response.data : {};
+      newPost.postLikes = newPost.postLikes || [];
+
+      const topicId = newPost.topicId;
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+
+    }
+  };
+
   return (
     <ScreenWrapper bg="white">
       <View style={styles.header}>
@@ -86,7 +182,7 @@ const PostsByTopic = () => {
             <Pressable style={styles.bottomSheet}>
               {bottomSheetType === 'topic' && (
                 <>
-                  <TouchableOpacity onPress={closeMenus} style={styles.menuItem}>
+                  <TouchableOpacity onPress={addPost} style={styles.menuItem}>
                     <Text style={styles.menuText}>Add Post</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={closeMenus} style={styles.menuItem}>
@@ -94,13 +190,31 @@ const PostsByTopic = () => {
                   </TouchableOpacity>
                 </>
               )}
-              {bottomSheetType === 'post' && selectedPost && (
+             {bottomSheetType === 'post' && selectedPost && (() => {
+                const post = posts.find(p => p.id === selectedPost);
+                if (!post) return null;
+
+                return (
+                  <>
+                    {post.userId === user?.id && (
+                      <TouchableOpacity onPress={() => { closeMenus(); handleDelete(selectedPost); }} style={styles.menuItem}>
+                        <Text style={styles.menuText}>Delete</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={() => { closeMenus(); handleFlag(selectedPost); }} style={styles.menuItem}>
+                      <Text style={styles.menuText}>Flag</Text>
+                    </TouchableOpacity>
+                  </>
+                );
+              })()}
+              {bottomSheetType === 'newPost' && (
                 <>
-                  <TouchableOpacity onPress={() => { closeMenus(); handleDelete(selectedPost); }} style={styles.menuItem}>
-                    <Text style={styles.menuText}>Delete</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => { closeMenus(); handleFlag(selectedPost); }} style={styles.menuItem}>
-                    <Text style={styles.menuText}>Flag</Text>
+                  <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={onSubmit}
+                  >
+                    <Text style={styles.textStyle}>Post</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -134,7 +248,7 @@ const styles = StyleSheet.create({
   },
   bottomSheet: {
     backgroundColor: '#fff',
-    paddingVertical: 20,
+    padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -144,5 +258,19 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 16,
+  },
+  button: {
+    borderRadius: 10,
+    padding: 5,
+    elevation: 2,
+    margin: 5,
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
   },
 });

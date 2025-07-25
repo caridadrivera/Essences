@@ -64,9 +64,6 @@ const ReminderModal = ({ onClose, isVisible }) => {
 
         const triggerDate = new Date(year, month - 1, day, adjustedHours, minutes, seconds);
 
-        console.log("Parsed Date (local):", triggerDate.toLocaleString());
-
-
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: "Reminder",
@@ -104,7 +101,7 @@ const ReminderModal = ({ onClose, isVisible }) => {
         setLoading(false)
 
         if (error) {
-            console.log('Error:', error);
+            Alert.alert('Error', 'Unable to create reminder topic.'); 
         } else {
 
             scheduleNotification();

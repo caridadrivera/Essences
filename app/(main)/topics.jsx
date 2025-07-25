@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, FlatList, ScrollView, Alert } from 'react-native'
 import React, {useEffect, useState} from 'react'
 import { supabase } from '../../lib/supabase';
 const topics = () => {
@@ -11,7 +11,7 @@ const topics = () => {
           .select('id, title');
   
         if (error) {
-          console.log('error', error);
+          Alert.alert('Error', 'Unable to fetch topics.');
         } else {
           setTitles(data);
         }

@@ -10,7 +10,6 @@ export const createOrUpdatePost = async (post)=>{
         .single()
     
         if(error){
-            console.log('createPost error: ', error)
             return {success: false, msg: 'could not create your post'}
         }
     

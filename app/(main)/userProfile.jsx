@@ -16,6 +16,9 @@ import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
 import { useAuth } from '../../context/AuthContext'
 import ReminderModal from './reminder'
+import RichTextEditor from '../../components/RichTextEditor'
+import { analyzeText } from '../../services/perspecticeService'
+import { createOrUpdatePost } from '../../services/postService'
 
 
 
@@ -34,6 +37,12 @@ const userProfile = () => {
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const iconRef = useRef(null);
   const [postMenuOptionVisible, setPostMenuOptionVisible] = useState(false);
+  const [bottomSheetType, setBottomSheetType] = useState(null); // 'topic' | 'post' | 'newPost'
+  const bodyRef = useRef("")
+  const editorRef = useRef("")
+  const [loading, setLoading] = useState(false)
+  const [toxicityScore, setToxicityScore] = useState(null);
+
 
 
   useEffect(() => {
@@ -45,13 +54,11 @@ const userProfile = () => {
     fetchData();
     setbgImage(getUserImage(background_img))
 
-    let postChannel;
-    if (postModalVisible) {
-      postChannel = supabase
-        .channel('posts')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
-        .subscribe()
-    }
+    const postChannel = supabase
+      .channel('realtime:posts') // good practice to prefix channels uniquely
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, handlePostEvent)
+      .subscribe();
+
 
     return () => {
       if (postChannel) {
@@ -59,21 +66,21 @@ const userProfile = () => {
       }
 
     }
-  }, [postModalVisible, isPostDeleted, user]);
+  }, [isPostDeleted, user]);
 
   const handlePostEvent = async (payload) => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
       let newPost = { ...payload.new };
-
       const response = await getUserData(newPost.userId);
+
       newPost.user = response.success ? response.data : {};
       newPost.postLikes = newPost.postLikes || [];
 
-      const topicId = newPost.topicId;
-      setPostsByTopic((prevPosts) => ({
-        ...prevPosts,
-        [topicId]: [newPost, ...(prevPosts[topicId] || [])],
+      setPostsByTopic((prev) => ({
+        ...prev,
+        [newPost.topicId]: [newPost, ...(prev[newPost.topicId] || [])]
       }));
+
     }
   };
 
@@ -141,7 +148,7 @@ const userProfile = () => {
 
 
   const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height; 
+  const screenHeight = Dimensions.get('window').height;
 
   const openMenu = () => {
     iconRef.current.measure((fx, fy, width, height, px, py) => {
@@ -197,6 +204,56 @@ const userProfile = () => {
     router.push('blockedUsers')
   }
 
+  const closeMenus = () => {
+    setBottomSheetType(null);
+
+  };
+
+
+  const onSubmit = async () => {
+    if (!bodyRef.current) {
+      Alert.alert("Post", "Your post is empty :(");
+      return;
+    }
+
+    try {
+      const score = await analyzeText(bodyRef.current);
+      setToxicityScore(score);
+
+      const data = {
+        body: bodyRef.current,
+        userId: user?.id,
+        topicId: selectedTopic, // ✅ use correct ID
+        isToxic: score > 0.7
+      };
+
+      if (score > 0.7) {
+        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
+      } else {
+        setBottomSheetType(null);
+      }
+
+      await processPost(data); // ✅ ensure errors bubble up
+
+    } catch (error) {
+      Alert.alert('Error', 'Unable to submit the post.');
+      console.error("Submit error:", error);
+    }
+  };
+
+  const processPost = async (data) => {
+    setLoading(true)
+    let response = await createOrUpdatePost(data)
+    setLoading(false)
+
+    if (response.success) {
+      bodyRef.current = ''
+      editorRef.current?.setContentHTML('');
+      setPostModalVisible(false);
+    } else {
+      Alert.alert('Post', response.msg)
+    }
+  }
   return (
     <ScreenWrapper >
       <View style={styles.header}>
@@ -222,7 +279,6 @@ const userProfile = () => {
           <TouchableOpacity
             ref={iconRef}
             onPress={(e) => {
-              e.stopPropagation();
               openMenu();
             }}
             style={styles.iconButton}>
@@ -260,24 +316,16 @@ const userProfile = () => {
 
 
                   <TouchableOpacity onPress={(e) => {
-                      e.stopPropagation();
-                      router.push('editProfile');
-                      closeMenu();
+                    e.stopPropagation();
+                    router.push('editProfile');
+                    closeMenu();
                   }}
                     style={styles.menuItem}
                   >
                     <Text>Edit profile</Text>
                   </TouchableOpacity>
 
-                  {/* <TouchableOpacity onPress={(e) => {
-                      e.stopPropagation();
-                      setReminderModalVisible(true);
-                      closeMenu();
-                  }}
-                    style={styles.menuItem}
-                  >
-                    <Text>Set reminder</Text>
-                  </TouchableOpacity> */}
+
                 </View>
               </Pressable>
             </Modal>
@@ -301,7 +349,7 @@ const userProfile = () => {
                 <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
                 <TouchableOpacity key={topic.id} onPress={() => {
                   setSelectedTopic(topic.id);
-                  setPostModalVisible(true);
+                  setBottomSheetType('newPost')
                 }}>
                   <View style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>
                     <Icon name='plusIcon' />
@@ -335,27 +383,26 @@ const userProfile = () => {
             <Text >No more posts</Text>
           </View>
         )}
-
       </ScrollView>
+      {bottomSheetType && (
+        <Modal transparent animationType="slide" visible onRequestClose={closeMenus}>
+          <Pressable style={styles.overlay} onPress={closeMenus}>
+            <Pressable style={styles.bottomSheet}>
 
-      <NewPost
-        isVisible={postModalVisible}
-        user={user}
-        topicId={selectedTopic}
-        onClose={(e) => {
-          e.stopPropagation();
-          setPostModalVisible(false)
-        }}
-      />
+              <>
+                <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={onSubmit}
+                >
+                  <Text style={styles.textStyle}>Post</Text>
+                </TouchableOpacity>
+              </>
 
-      {/* <ReminderModal
-        isVisible={reminderModalVisible}
-        onClose={(e) => {
-          e.stopPropagation();
-          setReminderModalVisible(false)
-        }}
-      /> */}
-
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
     </ScreenWrapper>
 
 
@@ -437,7 +484,29 @@ const styles = StyleSheet.create({
     color: 'blue',
   },
   overlay: {
-    flex: 1
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  button: {
+    borderRadius: 10,
+    padding: 5,
+    elevation: 2,
+    margin: 5,
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
   }
 
 
