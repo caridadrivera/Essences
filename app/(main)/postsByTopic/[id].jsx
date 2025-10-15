@@ -2,7 +2,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import PostCard from '../postCard';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Pressable, TouchableOpacity, Modal, Alert } from 'react-native';
+import { StyleSheet, View, Text, Pressable, TouchableOpacity, Modal, Alert, KeyboardAvoidingView, TouchableNativeFeedback, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import { theme } from '../../../constants/theme';
 import Icon from '../../../assets/icons';
@@ -12,6 +12,9 @@ import { useAuth } from '../../../context/AuthContext';
 import { analyzeText } from '../../../services/perspecticeService';
 import { createOrUpdatePost } from '../../../services/postService';
 import { getUserData } from '../../../services/userService';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+
 
 const PostsByTopic = () => {
   const router = useRouter();
@@ -51,7 +54,7 @@ const PostsByTopic = () => {
 
     try {
       const score = await analyzeText(bodyRef.current);
-      
+
       setToxicityScore(score);
 
       if (score > 0.7) {
@@ -143,7 +146,7 @@ const PostsByTopic = () => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
       let newPost = { ...payload.new };
       const response = await getUserData(newPost.userId);
-     
+
       newPost.user = response.success ? response.data : {};
       newPost.postLikes = newPost.postLikes || [];
 
@@ -185,12 +188,12 @@ const PostsByTopic = () => {
                   <TouchableOpacity onPress={addPost} style={styles.menuItem}>
                     <Text style={styles.menuText}>Add Post</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={closeMenus} style={styles.menuItem}>
+                  {/* <TouchableOpacity onPress={closeMenus} style={styles.menuItem}>
                     <Text style={styles.menuText}>Follow Hive</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </>
               )}
-             {bottomSheetType === 'post' && selectedPost && (() => {
+              {bottomSheetType === 'post' && selectedPost && (() => {
                 const post = posts.find(p => p.id === selectedPost);
                 if (!post) return null;
 
@@ -209,7 +212,24 @@ const PostsByTopic = () => {
               })()}
               {bottomSheetType === 'newPost' && (
                 <>
-                  <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+                  <KeyboardAwareScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    enableOnAndroid={true}
+                    extraScrollHeight={100}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    <KeyboardAvoidingView
+                      behavior={Platform.OS === "ios" ? "padding" : "height"}
+                      style={{ flex: 1 }}
+                    >
+                      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
+
+                        <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+                      </TouchableWithoutFeedback>
+                    </KeyboardAvoidingView>
+                  </KeyboardAwareScrollView>
+
                   <TouchableOpacity
                     style={[styles.button, styles.buttonClose]}
                     onPress={onSubmit}

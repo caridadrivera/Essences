@@ -54,3 +54,7 @@ yarn-error.*
 *.tsbuildinfo
 
 # @end expo-cli
+
+.branches
+.temp
+.env

@@ -99,7 +99,7 @@ const Welcome = () => {
       <View style={styles.container}>
         <View style={{ gap: 8 }}>
           <Image source={iconImg} style={{ height: 208, width: "100%" }} />
-          <Text style={styles.punchline}> Your place to share stories... </Text>
+          <Text style={styles.punchline}> Your voice. Your space. Your essence.</Text>
         </View>
         <View style={styles.form}>
           <Input
