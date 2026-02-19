@@ -4,8 +4,6 @@ import { hp, wp } from '../helpers/common'
 import { theme } from '../constants/theme'
 import Avatar from './Avatar'
 import { supabase } from '../lib/supabase'
-import PostModal from '../app/(main)/postModal'
-import ScreenWrapper from './ScreenWrapper'
 
 const NotificationItem = ({ item, router }) => {
   const [post, setPost] = useState()
@@ -74,11 +72,7 @@ const NotificationItem = ({ item, router }) => {
         </Text>
       </TouchableOpacity>
 
-      <PostModal
-         isVisible={modalVisible}
-         post={post}
-         onClose={() => setModalVisible(false)}
-     />
+  
 
     </View>
 

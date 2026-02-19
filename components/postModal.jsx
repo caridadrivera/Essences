@@ -2,9 +2,9 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { PaperProvider, Card } from 'react-native-paper'
-import Avatar from '../../components/Avatar';
+import Avatar from './Avatar';
 import RenderHTML from 'react-native-render-html';
-import { wp } from '../../helpers/common';
+import { wp } from '../helpers/common';
 const PostModal = ({ isVisible, post, onClose }) => {
     if (!post) return null;
 

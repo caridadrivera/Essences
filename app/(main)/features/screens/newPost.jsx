@@ -3,10 +3,10 @@ import {
   Keyboard
 } from 'react-native'
 import React, { useState, useRef } from 'react'
-import RichTextEditor from '../../components/RichTextEditor'
+import RichTextEditor from '../../../../components/RichTextEditor'
 import { Alert } from 'react-native'
-import { createOrUpdatePost } from '../../services/postService'
-import { analyzeText } from '../../services/perspecticeService'
+import { createOrUpdatePost } from '../../../../services/postService'
+import { analyzeText } from '../../../../services/perspecticeService'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 

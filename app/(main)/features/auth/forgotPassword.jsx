@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../../../lib/supabase';
 import { router } from 'expo-router';
-import ScreenWrapper from '../components/ScreenWrapper';
-import BackButton from '../components/BackButton';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import BackButton from '../../../../components/BackButton';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

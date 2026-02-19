@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import Avatar from '../../components/Avatar';
+
+import Avatar from './Avatar';
 import RenderHTML from 'react-native-render-html';
-import { wp } from '../../helpers/common';
-import Icon from '../../assets/icons';
-import { theme } from '../../constants/theme';
-import { useAuth } from '../../context/AuthContext';
-import { createPostLike, removePostLike } from '../../services/postService';
+import { wp } from '../helpers/common';
+import Icon from '../assets/icons';
+import { useAuth } from '../context/AuthContext';
+import { createPostLike, removePostLike } from '../services/postService';
 
 const PostCard = ({ item, openPostMenu }) => {
   const { user } = useAuth();

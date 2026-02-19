@@ -1,11 +1,9 @@
 import { View, Text, Button } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router'
-import ScreenWrapper from '../components/ScreenWrapper'
-import Welcome from './welcome'
+import ScreenWrapper from '../../../components/ScreenWrapper'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import * as Notifications from 'expo-notifications';
-
+import SignUp from './auth/signUp'
 
 const index = () => {
     const router = useRouter()
@@ -13,7 +11,7 @@ const index = () => {
   return (
     <GestureHandlerRootView>
         <ScreenWrapper>
-            <Welcome/>
+            <SignUp/>
        </ScreenWrapper >
     </GestureHandlerRootView>
   )

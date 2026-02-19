@@ -3,17 +3,17 @@ import {
   Platform, Keyboard, ScrollView, TouchableWithoutFeedback, Alert
 } from 'react-native';
 import React, { useRef, useState } from 'react';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Icon from '../assets/icons';
-import { theme } from '../constants/theme';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Icon from '../../../../assets/icons';
+import { theme } from '../../../../constants/theme';
 import { StatusBar } from 'expo-status-bar';
-import BackButton from '../components/BackButton';
+import BackButton from '../../../../components/BackButton';
 import { useRouter } from 'expo-router';
-import { wp, hp } from '../helpers/common';
-import Input from '../components/Input';
-import ButtonComponent from '../components/Button';
-import { supabase } from '../lib/supabase';
-import { getUserImage } from '../services/userProfileImage';
+import { wp, hp } from '../../../../helpers/common';
+import Input from '../../../../components/Input';
+import ButtonComponent from '../../../../components/Button';
+import { supabase } from '../../../../lib/supabase';
+import { getUserImage } from '../../../../services/userProfileImage';
 import { Image } from 'expo-image';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 

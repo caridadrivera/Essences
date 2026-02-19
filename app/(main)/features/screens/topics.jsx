@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, FlatList, ScrollView, Alert } from 'react-native'
 import React, {useEffect, useState} from 'react'
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../../../lib/supabase';
+
 const topics = () => {
     const [titles, setTitles] = useState([]);
 

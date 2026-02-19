@@ -1,13 +1,13 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { fetchNotifications } from '../../services/notificationService'
-import { useAuth } from '../../context/AuthContext'
-import ScreenWrapper from '../../components/ScreenWrapper'
-import { hp, wp } from '../../helpers/common'
-import { theme } from '../../constants/theme'
-import NotificationItem from '../../components/NotificationItem'
+import { fetchNotifications } from '../../../../services/notificationService'
+import { useAuth } from '../../../../context/AuthContext'
+import ScreenWrapper from '../../../../components/ScreenWrapper'
+import { hp, wp } from '../../../../helpers/common'
+import { theme } from '../../../../constants/theme'
+import NotificationItem from '../../../../components/NotificationItem'
 import { useRouter } from 'expo-router'
-import Icon from '../../assets/icons'
+import Icon from '../../../../assets/icons'
 
 
 const Notifications = () => {

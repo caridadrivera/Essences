@@ -1,27 +1,21 @@
-import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, Dimensions, SafeAreaView, StatusBar, FlatList } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, useWindowDimensions, SafeAreaView, StatusBar, FlatList } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import ScreenWrapper from '../../components/ScreenWrapper'
-import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../context/AuthContext'
-import { theme } from '../../constants/theme'
-import { Card } from 'react-native-paper'
-import LogOutButton from '../../components/LogOutButton'
-import LikeButton from '../../components/likeButton'
+import ScreenWrapper from '../../../../components/ScreenWrapper'
+import { supabase } from '../../../../lib/supabase'
+import { useAuth } from '../../../../context/AuthContext'
+import { theme } from '../../../../constants/theme'
+import LogOutButton from '../../../../components/LogOutButton'
 import { router } from 'expo-router'
-import { hp, wp } from '../../helpers/common'
-import Icon from '../../assets/icons'
-import Avatar from '../../components/Avatar'
-import PostModal from './postModal'
-import RenderHTML from 'react-native-render-html'
-import Loading from '../../components/Loading'
-import HomePostCard from './homePostCard'
-import { getUserImage } from '../../services/userProfileImage'
+import { hp, wp } from '../../../../helpers/common'
+import Icon from '../../../../assets/icons'
+import Avatar from '../../../../components/Avatar'
+import Loading from '../../../../components/Loading'
+import { getUserImage } from '../../../../services/userProfileImage'
 import { Image } from 'expo-image'
-import { fetchNotifications } from '../../services/notificationService'
-import { useNotification } from '../../context/NotificationContext'
-import TopicLayout from '../../components/TopicLayout'
-import TopicCard from './topicCard'
+import { useNotification } from '../../../../context/NotificationContext'
+import TopicCard from '../../../../components/topicCard'
 import { useRouter } from 'expo-router'
+import { TabView, SceneMap } from 'react-native-tab-view';
 
 
 const Home = ({ }) => {
@@ -40,8 +34,7 @@ const Home = ({ }) => {
 
   useEffect(() => {
     setLoading(true)
-    fetchData();
-    
+    fetchData();   
   }, []);
 
  
@@ -197,19 +190,7 @@ const Home = ({ }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Hives</Text>
       </View>       
-          <View  style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
-              <FlatList
-                data={topics}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={2}
-                contentContainerStyle={{ paddingVertical: 16 }}
-                columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 16 }}      
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-            <TopicCard topic={item} onPress={() => handleTopicPress(item)} />
-          )}
-        />
-      </View>
+
     
      </SafeAreaView>
       )}

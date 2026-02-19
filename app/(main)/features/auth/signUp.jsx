@@ -1,21 +1,21 @@
 import { View, StyleSheet, Text, Pressable, Modal, Alert, ScrollView, Button,   KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState, useRef } from 'react'
-import ScreenWrapper from '../components/ScreenWrapper'
+import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { StatusBar } from 'expo-status-bar'
-import { hp, wp } from '../helpers/common'
-import { theme } from '../constants/theme'
-import MainHexagon from '../assets/icons/Main'
-import ButtonComponent from '../components/Button'
+import { hp, wp } from '../../../../helpers/common'
+import { theme } from '../../../../constants/theme'
+import MainHexagon from '../../../../assets/icons/Main'
+import ButtonComponent from '../../../../components/Button'
 import { router } from 'expo-router'
-import Input from '../components/Input'
-import Icon from '../assets/icons'
+import Input from '../../../../components/Input'
+import Icon from '../../../../assets/icons'
 import { useRouter } from 'expo-router'
-import { supabase } from '../lib/supabase'
-import { getUserImage } from '../services/userProfileImage'
+import { supabase } from '../../../../lib/supabase'
+import { getUserImage } from '../../../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-const Welcome = () => {
+const SignUp = () => {
 
   const router = useRouter();
   const nameRef = useRef("")
@@ -99,7 +99,7 @@ const Welcome = () => {
       <View style={styles.container}>
         <View style={{ gap: 8 }}>
           <Image source={iconImg} style={{ height: 208, width: "100%" }} />
-          <Text style={styles.punchline}> Your voice. Your space. Your essence.</Text>
+          <Text style={styles.punchline}> Your voice. Your story. Your essence.</Text>
         </View>
         <View style={styles.form}>
           <Input
@@ -231,7 +231,7 @@ const Welcome = () => {
   )
 }
 
-export default Welcome
+export default SignUp
 
 const styles = StyleSheet.create({
   container: {
