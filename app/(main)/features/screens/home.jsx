@@ -13,21 +13,21 @@ import Loading from '../../../../components/Loading'
 import { getUserImage } from '../../../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { useNotification } from '../../../../context/NotificationContext'
-import TopicCard from '../../../../components/topicCard'
 import { useRouter } from 'expo-router'
-import { TabView, SceneMap } from 'react-native-tab-view';
-
+import TopicTabs from '../../../../components/TopicTabs'
+import PostCard from '../../../../components/postCard'
+import PostModal from '../../../../components/postModal'
+//on click of a topic, do api call to 
 
 const Home = ({ }) => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
+  const [selectedTopicId, setSelectedTopicId] = useState(null)
   const { user, setAuth } = useAuth();
   const router = useRouter();
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [modalVisible, setModalVisible] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const { notificationCount, setNotificationCount } = useNotification()
 
@@ -56,13 +56,7 @@ const Home = ({ }) => {
     }
 
     setTopics(data);
-    const fetchedPostsByTopic = {};
-    for (const topic of data) {
-      const topicPosts = await fetchPosts(topic, user);
-      fetchedPostsByTopic[topic.id] = topicPosts;
-    }
-
-    setPostsByTopic(fetchedPostsByTopic);
+    if (data?.length) setSelectedTopicId(prev => prev ?? data[0].id)
   };
 
 
@@ -110,12 +104,16 @@ const Home = ({ }) => {
   let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   const handleTopicPress = async (topic) => {
-
     router.push({
-      pathname: `/postsByTopic/${topic.id}`,
+      pathname: `/posts-by-topic/${topic.id}`,
       params: { topicId: topic.id, title: topic.title }
     });
   };
+
+  const onTopicChange = (topicId, posts) =>{
+    setSelectedTopicId(topicId)
+    setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
+  }
 
   const fetchMorePosts = async () => {
     const { data, error } = await supabase
@@ -155,7 +153,7 @@ const Home = ({ }) => {
 
         <View style={styles.icons}>
           <Pressable style={styles.buttonStyle} onPress={() => router.push({
-              pathname: 'userProfile',
+              pathname: '/features/screens/user-profile',
               params: { user: user, id: user.id, profile_img: user.profile_image, background_img: user.background_image ,name: user.name, bio: user.bio}
             }
             )} >
@@ -167,7 +165,7 @@ const Home = ({ }) => {
           </Pressable>
           <TouchableOpacity style={styles.relateButton} onPress={() => {
             setNotificationCount(0)
-            router.push('notifications')
+            router.push('/features/screens/notifications')
           }}>
             <Icon name="hexagonIcon" fill={theme.colors.likeYellow} />
             {notificationCount > 0 && (
@@ -184,15 +182,39 @@ const Home = ({ }) => {
         <View style={{ marginVertical: 0}}>
           <Loading />
         </View>) : (
-    <SafeAreaView style={styles.topicContainer}>
+    <View style={styles.topicContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Hives</Text>
-      </View>       
+      </View>     
+
+        <TopicTabs
+          topics={topics}
+          fetchPosts={fetchPosts}
+          user={user}
+          initialTopicId={selectedTopicId}
+          onPostsLoaded={onTopicChange}
+        />
+
+        <View style={styles.postsWrapper}>
+          {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
+            <FlatList
+              data={postsByTopic[selectedTopicId]}
+              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+              renderItem={({ item }) => (
+                <PostCard item={item} openPostMenu={() => { setSelectedPost(item); setModalVisible(true); }} />
+              )}
+           />
+          ) : (
+            <Text style={styles.noPosts}>No posts for this topic..</Text>
+          )}
+        </View>
+
+        <PostModal isVisible={modalVisible} post={selectedPost} onClose={() => setModalVisible(false)} />
 
     
-     </SafeAreaView>
+     </View>
       )}
     </ScreenWrapper>
   )
@@ -283,14 +305,16 @@ const styles = StyleSheet.create({
     paddingTop: 28
   },
   pill: {
-    width: hp(2.2),
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
-    backgroundColor: theme.colors.roseLight
+    borderRadius: 10,
+    backgroundColor: theme.colors.amber
   },
   pillText: {
-    color: 'white',
+    color: '#fff',
     fontSize: hp(1.2),
     fontWeight: theme.fonts.bold
   },
@@ -312,6 +336,41 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: 'space-between',
     marginBottom: 16,
+  }
+
+  ,
+  simpleTabs: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    width: '100%'
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: 'transparent'
+  }
+
+  ,
+  postsWrapper: {
+    marginTop: 12,
+    flex: 1
+  },
+  postItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)'
+  },
+  postTitle: {
+    fontSize: hp(2.1),
+    fontWeight: theme.fonts.semibold,
+    color: theme.colors.text
+  },
+  postExcerpt: {
+    marginTop: 6,
+    color: theme.colors.textLight
   }
 
 })

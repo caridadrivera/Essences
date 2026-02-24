@@ -71,7 +71,7 @@ const SignUp = () => {
     setLoading(false)
 
     if (error) {
-      Alert.alert('singup', error.message)
+      Alert.alert('sign up', error.message)
     }
 
 
@@ -142,7 +142,7 @@ const SignUp = () => {
               Been here?
             </Text>
 
-            <Pressable onPress={() => router.push('login')}>
+            <Pressable onPress={() => router.push('/features/auth/login')}>
               <Text style={[styles.loginText, { color: theme.colors.primaryDark, fontWeight: theme.fonts.semibold }]}>
                 Login
               </Text>

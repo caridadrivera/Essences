@@ -1,10 +1,8 @@
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
-import { PaperProvider, Card } from 'react-native-paper'
 import { theme } from '../../../constants/theme'
 import { supabase } from '../../../lib/supabase'
 import Avatar from '../../../components/Avatar'
-import BackButton from '../../../components/BackButton'
 import { ScrollView } from 'react-native'
 import { useAuth } from '../../../context/AuthContext'
 import { Image } from 'expo-image'
@@ -162,7 +160,7 @@ const Profile = () => {
     }
   
     Alert.alert('User blocked');
-    router.push('home')
+    router.replace('/features/screens/home')
     return true;
   };
   
@@ -177,7 +175,7 @@ const Profile = () => {
               height: 228,
               width: "100%"
             }} />
-            <Pressable  onPress={()=> router.push('home')}>
+            <Pressable  onPress={()=> router.replace('/features/screens/home')}>
                 <Icon name="arrowLeft" />
             </Pressable>
         </View>

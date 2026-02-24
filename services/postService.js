@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase"
+import { createNotification } from './notificationService'
 
 export const createOrUpdatePost = async (post)=>{
 
@@ -35,6 +36,24 @@ export const createPostLike= async (postLike) => {
         if(error){
             return {success: false, msg: 'Could not like the post'}
         }
+
+                // create a notification for the post owner when their post is liked
+                try{
+                    const notification = {
+                        receiverId: data.postOwnerId || data.post?.userId || postLike.postOwnerId || null,
+                        senderId: postLike.userId,
+                        type: 'like',
+                        message: 'Your post was liked',
+                        postId: data.postId || postLike.postId,
+                        created_at: new Date().toISOString()
+                    }
+                    if(notification.receiverId){
+                        await createNotification(notification)
+                    }
+                }catch(err){
+                    // non-fatal: don't block like on notification failure
+                    console.warn('createNotification failed', err)
+                }
   
         return {success: true, data: data}
     }

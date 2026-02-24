@@ -1,24 +1,31 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, Alert } from 'react-native'
 import React from 'react'
 import Icon from '../assets/icons'
 import { theme } from '../constants/theme'
-import { router } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+
 
 const LogOutButton = ({size=24}) => {
 
     const { setAuth } = useAuth()
+    const router = useRouter()
 
     const logOut = async () => {
-      
+      try{
+        console.log('logging out user...')
         const { error } = await supabase.auth.signOut()
         if (error) {
-          Alert.alert()
+          Alert.alert('Logout failed', error.message || 'Unable to sign out')
+          return
         }
         setAuth(null)
-        router.push('/welcome');
+        router.replace('/features/auth/login')
+      }catch(err){
+        Alert.alert('Logout failed', err.message || 'Unexpected error')
       }
+    }
 
   return (
 

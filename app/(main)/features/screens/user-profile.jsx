@@ -198,7 +198,7 @@ const userProfile = () => {
   }
 
   const navigateToBlockedList = () => {
-    router.push('blockedUsers')
+    router.push('/features/screens/blocked-list')
   }
 
   const closeMenus = () => {
@@ -312,9 +312,8 @@ const userProfile = () => {
                   </TouchableOpacity>
 
 
-                  <TouchableOpacity onPress={(e) => {
-                    e.stopPropagation();
-                    router.push('editProfile');
+                  <TouchableOpacity onPress={() => {
+                    router.push('/features/screens/edit-profile')
                     closeMenu();
                   }}
                     style={styles.menuItem}

@@ -4,6 +4,7 @@ export default {
   expo: {
     name: 'Essences',
     slug: 'essences',
+    scheme: 'essences',
 
     extra: {
       SUPABASE_URL: process.env.SUPABASE_URL,

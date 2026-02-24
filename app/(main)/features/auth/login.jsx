@@ -96,7 +96,7 @@ const Login = () => {
                   />
                 </View>
 
-                <Pressable style={styles.forgotPassword} onPress={() => router.push('ForgotPassword')}>
+                <Pressable style={styles.forgotPassword} onPress={() => router.push('/features/auth/forgot-password')}>
                   <Text> Forgot Password </Text>
                 </Pressable>
 
@@ -105,7 +105,7 @@ const Login = () => {
                 {/* Footer */}
                 <View style={styles.footer}>
                   <Text style={styles.footerText}> No account yet? Let's change that! </Text>
-                  <Pressable onPress={() => router.push('welcome')}>
+                  <Pressable onPress={() => router.replace('/features/auth/sign-up')}>
                     <Text style={[styles.footerText, { color: theme.colors.primaryDark, fontWeight: theme.fonts.semibold }]}> Sign Up </Text>
                   </Pressable>
                 </View>

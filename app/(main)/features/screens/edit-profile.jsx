@@ -71,7 +71,7 @@ const EditProfile = () => {
         try {
             await AsyncStorage.removeItem('userToken');
 
-            router.push('/welcome');
+            router.push('/features/auth/login');
         } catch (error) {
             console.error('Failed to clear user session:', error);
         }

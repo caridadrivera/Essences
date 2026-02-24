@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { fetchNotifications } from '../../../../services/notificationService'
 import { useAuth } from '../../../../context/AuthContext'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { hp, wp } from '../../../../helpers/common'
@@ -9,6 +8,7 @@ import { useRouter } from 'expo-router'
 import Icon from '../../../../assets/icons'
 import { supabase } from '../../../../lib/supabase'
 import BlockedUserItem from '../../../../components/BlockedUserItem'
+
 
 const blockedUsers = () => {
   const { user } = useAuth()

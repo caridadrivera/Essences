@@ -1,5 +1,4 @@
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import PostCard from '../../../components/postCard';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Pressable, TouchableOpacity, Modal, Alert, KeyboardAvoidingView, TouchableNativeFeedback, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';

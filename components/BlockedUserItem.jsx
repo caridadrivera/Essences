@@ -37,7 +37,7 @@ const BlockedUserItem = ({ item, router }) => {
       } else {
         Alert.alert('Success', 'User unblocked successfully!');
         setModalVisible(false);
-        router.push('home')
+        router.push('/features/screens/home');
       }
     } catch (err) {
       console.error(err);
