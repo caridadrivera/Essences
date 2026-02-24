@@ -115,31 +115,6 @@ const Home = ({ }) => {
     setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
   }
 
-  const fetchMorePosts = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title')
-      .is('user_id', null);
-
-
-    if (error) {
-      console.error('Error fetching topics:', error);
-      return;
-    }
-
-    if (data.length == topics.length) {
-      setHasMorePosts(false)
-    }
-
-    setTopics(data);
-    const postsByTopic = {};
-    for (const topic of data) {
-      const topicPosts = await fetchPosts(topic, user);
-      postsByTopic[topic.id] = topicPosts;
-    }
-
-    setPostsByTopic(postsByTopic);
-  }
 
   return (
 
@@ -211,8 +186,7 @@ const Home = ({ }) => {
           )}
         </View>
 
-        <PostModal isVisible={modalVisible} post={selectedPost} onClose={() => setModalVisible(false)} />
-
+     
     
      </View>
       )}
