@@ -4,11 +4,20 @@ import { createNotification } from './notificationService'
 export const createOrUpdatePost = async (post)=>{
 
     try{
-        const {data, error} = await supabase
-        .from('posts')
-        .upsert(post)
-        .select()
-        .single()
+                const {data, error} = await supabase
+                .from('posts')
+                .upsert(post)
+                .select(`
+                    *,
+                    users (
+                        id,
+                        name,
+                        profile_image,
+                        bio
+                    ),
+                    postLikes(*)
+                `)
+                .single()
     
         if(error){
             return {success: false, msg: 'could not create your post'}
@@ -52,7 +61,6 @@ export const createPostLike= async (postLike) => {
                     }
                 }catch(err){
                     // non-fatal: don't block like on notification failure
-                    console.warn('createNotification failed', err)
                 }
   
         return {success: true, data: data}

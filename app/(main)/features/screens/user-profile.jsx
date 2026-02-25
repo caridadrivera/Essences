@@ -46,6 +46,8 @@ const userProfile = () => {
     if (!user) return;
     const fetchData = async () => {
       await fetchTopics();
+      // reset delete flag after refresh so future deletes re-trigger
+      setIsPostDeleted(false)
     };
 
     fetchData();
@@ -54,6 +56,7 @@ const userProfile = () => {
     const postChannel = supabase
       .channel('realtime:posts') // good practice to prefix channels uniquely
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, handlePostEvent)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, handlePostDelete)
       .subscribe();
 
 
@@ -70,7 +73,8 @@ const userProfile = () => {
       let newPost = { ...payload.new };
       const response = await getUserData(newPost.userId);
 
-      newPost.user = response.success ? response.data : {};
+      // match the shape returned by `fetchPosts` and PostCard which expect `users`
+      newPost.users = response.success ? response.data : {};
       newPost.postLikes = newPost.postLikes || [];
 
       setPostsByTopic((prev) => ({
@@ -78,6 +82,20 @@ const userProfile = () => {
         [newPost.topicId]: [newPost, ...(prev[newPost.topicId] || [])]
       }));
 
+    }
+  };
+
+  const handlePostDelete = (payload) => {
+    if (payload?.old?.id) {
+      const deletedPostId = payload.old.id;
+      const deletedTopicId = payload.old.topicId;
+
+      setPostsByTopic((prev) => ({
+        ...prev,
+        [deletedTopicId]: (prev[deletedTopicId] || []).filter(
+          (post) => post.id !== deletedPostId
+        )
+      }));
     }
   };
 
@@ -89,7 +107,7 @@ const userProfile = () => {
       .from('posts')
       .select(`
         *,
-        user:users (
+        users (
           name,
           id,
           profile_image,

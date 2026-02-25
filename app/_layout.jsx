@@ -29,29 +29,21 @@ const MainLayout = () => {
 
     const init = async () => {
       try{
-
-        console.log('supabase.auth present:', !!supabase?.auth)
         const { data, error } = await supabase.auth.getSession();
-        // eslint-disable-next-line no-console
-        console.log('getSession result:', { data, error })
+  
         const session = data?.session ?? null
         if(session){
-          // eslint-disable-next-line no-console
-          console.log('initial session found', session.user?.id)
           setAuth(session.user)
           updateUserData(session.user, session.user.email)
-          // navigate to home after initial session is established
+
           setTimeout(()=> router.replace('/features/screens/home'), 0)
         } else {
-          // eslint-disable-next-line no-console
-          console.log('no initial session')
+      
           setAuth(null)
           setTimeout(()=> router.replace('/features/auth/sign-up'), 0)
         }
       }catch(err){
         // fallback: listen for realtime auth changes
-        // eslint-disable-next-line no-console
-        console.warn('init auth failed', err)
       }finally{
         setAuthReady(true)
         authReadyRef.current = true
@@ -61,8 +53,6 @@ const MainLayout = () => {
     init()
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
-      // eslint-disable-next-line no-console
-      console.log('onAuthStateChange event', event, 'authReady', authReadyRef.current, 'session:', !!session)
       // ignore events until initial session resolved to avoid race
       if(!authReadyRef.current) return
       if(session){

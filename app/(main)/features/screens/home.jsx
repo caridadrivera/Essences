@@ -35,6 +35,17 @@ const Home = ({ }) => {
   useEffect(() => {
     setLoading(true)
     fetchData();   
+
+    const postChannel = supabase
+      .channel('realtime:posts:home')
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, handlePostDelete)
+      .subscribe();
+
+    return () => {
+      if (postChannel) {
+        supabase.removeChannel(postChannel)
+      }
+    }
   }, []);
 
  
@@ -114,6 +125,20 @@ const Home = ({ }) => {
     setSelectedTopicId(topicId)
     setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
   }
+
+  const handlePostDelete = (payload) => {
+    if (payload?.old?.id) {
+      const deletedPostId = payload.old.id;
+      const deletedTopicId = payload.old.topicId;
+
+      setPostsByTopic((prev) => ({
+        ...prev,
+        [deletedTopicId]: (prev[deletedTopicId] || []).filter(
+          (post) => post.id !== deletedPostId
+        )
+      }));
+    }
+  };
 
 
   return (

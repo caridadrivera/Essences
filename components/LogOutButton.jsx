@@ -14,7 +14,6 @@ const LogOutButton = ({size=24}) => {
 
     const logOut = async () => {
       try{
-        console.log('logging out user...')
         const { error } = await supabase.auth.signOut()
         if (error) {
           Alert.alert('Logout failed', error.message || 'Unable to sign out')

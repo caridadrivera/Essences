@@ -9,7 +9,7 @@ import { createPostLike, removePostLike } from '../services/postService';
 import { useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase';
 
-const PostCard = ({ item, openPostMenu }) => {
+const PostCard = ({ item, setIsPostDeleted }) => {
   const { user } = useAuth();
   const [likes, setLikes] = useState([]);
    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -42,8 +42,7 @@ const PostCard = ({ item, openPostMenu }) => {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
     const MENU_WIDTH = 160
     const ITEM_HEIGHT = 44
-    const menuItems = (user?.id === item?.users?.id) ? 2 : 1
-    const estimatedMenuHeight = menuItems * ITEM_HEIGHT + 16
+    const estimatedMenuHeight = ITEM_HEIGHT + 16
 
     if (!iconRef.current || !iconRef.current.measure) {
       // fallback: center-ish
@@ -101,8 +100,9 @@ const PostCard = ({ item, openPostMenu }) => {
         .match({ id: item.id, userId: user.id })
       if(error) throw error
       Alert.alert('Deleted', 'Post deleted')
+        setIsPostDeleted(true) // mark deleted (parent will reset)
       setMenuVisible(false)
-      router.push('home')
+   
     } catch(err){
       Alert.alert('Error', err.message)
     }
@@ -137,28 +137,29 @@ const PostCard = ({ item, openPostMenu }) => {
                   },
                 ]}
               >
-               {user?.id === item.users.id && ( <TouchableOpacity
-                  onPress={(e) => {
-
-                    e.stopPropagation();
-                    closeMenu(e);
-                    handleDelete();
-                  }}
-                  style={styles.menuItem}
-                >
-                  <Text style={styles.menuText}>Delete</Text>
-                </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    closeMenu(e);
-                    handleFlag();
-                  }}
-                  style={styles.menuItem}
-                >
-                  <Text style={styles.menuText}>Flag</Text>
-                </TouchableOpacity>
+               {user?.id === item?.users?.id ? (
+                 <TouchableOpacity
+                   onPress={(e) => {
+                     e.stopPropagation();
+                     closeMenu(e);
+                     handleDelete();
+                   }}
+                   style={styles.menuItem}
+                 >
+                   <Text style={styles.menuText}>Delete</Text>
+                 </TouchableOpacity>
+               ) : (
+                 <TouchableOpacity
+                   onPress={(e) => {
+                     e.stopPropagation();
+                     closeMenu(e);
+                     handleFlag();
+                   }}
+                   style={styles.menuItem}
+                 >
+                   <Text style={styles.menuText}>Flag</Text>
+                 </TouchableOpacity>
+               )}
               </View>
             </Pressable>
           </Modal>
