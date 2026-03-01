@@ -88,15 +88,11 @@ const SignUp = () => {
       <KeyboardAwareScrollView
               contentContainerStyle={styles.scrollContainer}
               enableOnAndroid={true}
-              extraScrollHeight={100} // 🔹 Adjust this value if needed
+              extraScrollHeight={150}
               keyboardShouldPersistTaps="handled"
             >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
-        style={{ flex: 1 }}
-      >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
         <View style={{ gap: 8 }}>
           <Image source={iconImg} style={{ height: 208, width: "100%" }} />
           <Text style={styles.punchline}> Your voice. Your story. Your essence.</Text>
@@ -225,7 +221,6 @@ const SignUp = () => {
         </Modal>
       </View>
       </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
       </KeyboardAwareScrollView>
     </ScreenWrapper>
   )

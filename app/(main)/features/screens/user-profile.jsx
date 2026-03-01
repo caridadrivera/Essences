@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, TouchableOpacity, Pressable, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, Modal, TouchableOpacity, Pressable, Dimensions, TouchableWithoutFeedback, Keyboard, Alert, FlatList } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { theme } from '../../../../constants/theme'
 import { supabase } from '../../../../lib/supabase'
@@ -16,12 +16,15 @@ import { useAuth } from '../../../../context/AuthContext'
 import RichTextEditor from '../../../../components/RichTextEditor'
 import { analyzeText } from '../../../../services/perspecticeService'
 import { createOrUpdatePost } from '../../../../services/postService'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import TopicTabs from '../../../../components/TopicTabs'
 
 
 
 const userProfile = () => {
   const [topics, setTopics] = useState([]);
   const [postsByTopic, setPostsByTopic] = useState({});
+  const [selectedTopicId, setSelectedTopicId] = useState(null)
   const { user, setAuth } = useAuth()
   const [reminderModalVisible, setReminderModalVisible] = useState(false);
   const [bgImage, setbgImage] = useState(null)
@@ -138,15 +141,7 @@ const userProfile = () => {
     }
 
     setTopics(data);
-
-    const postsByTopic = {};
-    for (const topic of data) {
-      const topicPosts = await fetchPosts(topic);
-      postsByTopic[topic.id] = topicPosts;
-    }
-
-    setPostsByTopic(postsByTopic);
-    setHasMorePosts(false)
+    if (data?.length) setSelectedTopicId(prev => prev ?? data[0].id)
   };
 
   const handleScroll = (event) => {
@@ -215,8 +210,9 @@ const userProfile = () => {
     setPostsByTopic(fetchedPostsByTopic);
   }
 
-  const navigateToBlockedList = () => {
-    router.push('/features/screens/blocked-list')
+  const onTopicChange = (topicId, posts) => {
+    setSelectedTopicId(topicId)
+    setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
   }
 
   const closeMenus = () => {
@@ -351,70 +347,65 @@ const userProfile = () => {
         <Text style={{ fontStyle: 'italic' }}>{bio}</Text>
         <Text style={{ fontWeight: 'bold' }}>__________________</Text>
       </View>
-      <ScrollView
-        onScroll={handleScroll}
-        scrollEventThrottle={16}>
-        {topics.map(topic => (
-          <View key={topic.id} >
-            <View style={{ alignItems: 'center', marginTop: 20 }}>
-              {topic.user_id === user.id ? <Icon name="hexagonIcon" fill={theme.colors.yellow} /> :
-                <Icon name="hexagonIcon" />}
-              <View style={{ flexDirection: 'row' }}>
-                <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-                <TouchableOpacity key={topic.id} onPress={() => {
-                  setSelectedTopic(topic.id);
-                  setBottomSheetType('newPost')
-                }}>
-                  <View style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>
-                    <Icon name='plusIcon' />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <ScrollView horizontal={true} >
-              {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? (postsByTopic[topic.id] || []).map(filteredPost => (
+      <View style={styles.contentContainer}>
+        <View style={styles.topicHeader}>
+        <TopicTabs
+          topics={topics}
+          fetchPosts={fetchPosts}
+          user={user}
+          initialTopicId={selectedTopicId}
+          onPostsLoaded={onTopicChange}
+        />
+      </View>
 
-                <PostCard
-                  key={filteredPost.id}
-                  item={filteredPost}
-                  router={router}
-                  setIsPostDeleted={setIsPostDeleted} />
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedTopic(selectedTopicId);
+          setBottomSheetType('newPost')
+        }}
+        style={styles.addPostIconButton}
+      >
+        <Icon name='plusIcon' />
+      </TouchableOpacity>
 
-              )) : (
-                <View style={{ alignItems: 'center', marginLeft: 35 }}>
-                  <Text >No posts on this topic yet</Text>
-                </View>
-              )}
-
-            </ScrollView>
-          </View>
-        ))}
-
-        {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
-          <Loading />
-        </View>) : (
-          <View style={{ marginVertical: 30, alignItems: 'center' }}>
-            <Text >No more posts</Text>
-          </View>
+      <View style={styles.postsWrapper}>
+        {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
+          <FlatList
+            data={postsByTopic[selectedTopicId]}
+            keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+            renderItem={({ item }) => (
+              <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />
+            )}
+          />
+        ) : (
+          <Text style={styles.noPosts}>No posts for this topic..</Text>
         )}
-      </ScrollView>
+      </View>
+      </View>
       {bottomSheetType && (
         <Modal transparent animationType="slide" visible onRequestClose={closeMenus}>
-          <Pressable style={styles.overlay} onPress={closeMenus}>
-            <Pressable style={styles.bottomSheet}>
-
-              <>
-                <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={onSubmit}
-                >
-                  <Text style={styles.textStyle}>Post</Text>
-                </TouchableOpacity>
-              </>
-
-            </Pressable>
-          </Pressable>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{ flex: 1 }}
+            enableOnAndroid={true}
+            extraScrollHeight={200}
+            keyboardShouldPersistTaps="handled"
+          >
+            <TouchableWithoutFeedback onPress={closeMenus}>
+              <Pressable style={styles.overlay} onPress={closeMenus}>
+                <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                  <Pressable style={styles.bottomSheet}>
+                    <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+                    <TouchableOpacity
+                      style={[styles.button, styles.buttonClose]}
+                      onPress={onSubmit}
+                    >
+                      <Text style={styles.textStyle}>Post</Text>
+                    </TouchableOpacity>
+                  </Pressable>
+                </TouchableWithoutFeedback>
+              </Pressable>
+            </TouchableWithoutFeedback>
+          </KeyboardAwareScrollView>
         </Modal>
       )}
     </ScreenWrapper>
@@ -507,6 +498,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    width: '100%',
+    minHeight: '80%',
   },
   button: {
     borderRadius: 10,
@@ -521,7 +514,37 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center"
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    marginTop: 16
+  },
+  topicHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12
+  },
+  addPostIconButton: {
+    padding: 12,
+    marginVertical: 12,
+    backgroundColor: theme.colors.primaryDark,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 44,
+    height: 44,
+    alignSelf: 'center'
+  },
+  postsWrapper: {
+    marginTop: 12,
+    flex: 1
+  },
+  noPosts: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: theme.colors.text,
+    marginTop: 20
   }
-
-
 })

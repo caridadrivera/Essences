@@ -80,40 +80,31 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContainer}
         enableOnAndroid={true}
-        extraScrollHeight={100} 
+        extraScrollHeight={200}
         keyboardShouldPersistTaps="handled"
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          {/* Dismiss keyboard when tapping outside */}
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
+              <View style={styles.media}>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={onClose}
+                >
+                  <Text style={styles.textStyle}>Close</Text>
+                </TouchableOpacity>
 
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-
-                <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
-                <View style={styles.media}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.buttonClose]}
-                    onPress={onClose}
-                  >
-                    <Text style={styles.textStyle}>Close</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.button, styles.buttonClose]}
-                    onPress={onSubmit}
-                  >
-                    <Text style={styles.textStyle}>Post</Text>
-                  </TouchableOpacity>
-
-                </View>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={onSubmit}
+                >
+                  <Text style={styles.textStyle}>Post</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
     </Modal>
   )

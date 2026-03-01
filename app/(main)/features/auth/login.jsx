@@ -49,19 +49,11 @@ const Login = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContainer}
         enableOnAndroid={true}
-        extraScrollHeight={100} // 🔹 Adjust this value if needed
+        extraScrollHeight={150}
         keyboardShouldPersistTaps="handled"
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <ScrollView
-              contentContainerStyle={styles.scrollContainer}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.container}>
                 <BackButton router={router} />
 
                 <View>
@@ -110,9 +102,7 @@ const Login = () => {
                   </Pressable>
                 </View>
               </View>
-            </ScrollView>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
       </KeyboardAwareScrollView>
     </ScreenWrapper>
   );

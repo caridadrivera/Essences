@@ -16,8 +16,7 @@ import { Alert } from 'react-native'
 import { err } from 'react-native-svg'
 
 const Profile = () => {
-  const [topics, setTopics] = useState([]);
-  const [postsByTopic, setPostsByTopic] = useState({});
+  const [allPosts, setAllPosts] = useState([]);
   const [bgImage, setbgImage] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true)
@@ -36,15 +35,15 @@ const Profile = () => {
 
 
   const fetchData = async () => {
-    await fetchTopics();
+    await fetchAllPosts();
   };
 
-  const fetchPosts = async (topic) => {
+  const fetchAllPosts = async () => {
     const { data, error } = await supabase
       .from('posts')
       .select(`
         *,
-        user:users (
+        users (
           name,
           id, 
           profile_image,
@@ -53,36 +52,16 @@ const Profile = () => {
         ),
         postLikes(*)
       `)
-      .eq('topicId', topic.id)
       .eq('userId', id)
-      .order('created_at', {ascending: false})
+      .order('created_at', { ascending: false })
 
     if (error) {
-      console.error(`Error fetching posts for topic ${topic.id}:`, error);
-      return [];
-    }
-    return data;
-  };
-
-  const fetchTopics = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title');
-
-    if (error) {
-      console.error('Error fetching topics:', error);
+      console.error(`Error fetching posts:`, error);
       return;
     }
-
-    setTopics(data);
-
-    const postsByTopic = {};
-    for (const topic of data) {
-      const topicPosts = await fetchPosts(topic);
-      postsByTopic[topic.id] = topicPosts;
-    }
-
-    setPostsByTopic(postsByTopic);
+    
+    setAllPosts(data);
+    setHasMorePosts(false);
   };
 
   const handleScroll = (event) => {
@@ -100,27 +79,7 @@ const Profile = () => {
   };
 
   const fetchMorePosts = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title')
-
-    if (error) {
-      console.error('Error fetching topics:', error);
-      return;
-    }
-
-    if (data.length == topics.length) {
-      setHasMorePosts(false)
-    }
-
-    setTopics(data);
-    const postsByTopic = {};
-    for (const topic of data) {
-      const topicPosts = await fetchPosts(topic);
-      postsByTopic[topic.id] = topicPosts;
-    }
-
-    setPostsByTopic(postsByTopic);
+    setHasMorePosts(false);
   }
 
   const openMenu = () => {
@@ -233,38 +192,23 @@ const Profile = () => {
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}>
-        {topics.map(topic => (
-          <View key={topic.id} >
-            <View style={{ alignItems: 'center' }}>
-              <Icon name="hexagonIcon" fill={theme.colors.yellow} />
-              <Text style={{ margin: 4, fontSize: 18, fontWeight: 'bold' }}>{topic.title}</Text>
-         
-            </View>
-            <ScrollView horizontal={true}>
-              {(postsByTopic[topic.id] && postsByTopic[topic.id].length > 0) ? ( 
-                postsByTopic[topic.id] || []).map(filteredPost => (           
-                <View key={filteredPost.id}>
-                  <PostCard
-                    item={filteredPost}       
-                    router={router}
-                  />
-                </View>
-              )) : (
-                  <View style={{ alignItems: 'center', marginLeft: 35 }}>
-                    <Text >No posts on this topic yet</Text>
-                  </View>
-              )}
-            </ScrollView>
-          </View>
+        {allPosts.map(post => (
+          <PostCard
+            key={post.id}
+            item={post}
+            router={router}
+          />
         ))}
+
+        {allPosts.length === 0 && (
+          <View style={{ alignItems: 'center', marginTop: 30 }}>
+            <Text>No posts yet</Text>
+          </View>
+        )}
 
         {hasMorePosts ? (<View style={{ marginVertical: 30 }}>
           <Loading />
-        </View>) : (
-          <View style={{ marginVertical: 30, alignItems: 'center' }}>
-            <Text >No more posts</Text>
-          </View>
-        )}
+        </View>) : null}
       </ScrollView>
     </ScreenWrapper>
   )

@@ -109,9 +109,20 @@ const PostCard = ({ item, setIsPostDeleted }) => {
   }
 
   return (
-    <View style={{ backgroundColor: '#fff', borderColor: '#e0e0e0', borderWidth: 1, borderRadius: 6, padding: 8, marginBottom: 8 }}>
+    <View style={{ backgroundColor: '#fff', borderColor: '#e0e0e0', borderWidth: 1, borderRadius: 6, paddingVertical: 12, paddingHorizontal: 4, marginVertical: 8, marginHorizontal: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <Avatar uri={item?.users?.profile_image} style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10 }} />
+        <TouchableOpacity onPress={() => router.push({
+          pathname: '/users/[id]',
+          params: {
+            id: item?.users?.id,
+            profile_img: item?.users?.profile_image,
+            background_img: item?.users?.background_image,
+            user_name: item?.users?.name,
+            user_bio: item?.users?.bio
+          }
+        })}>
+          <Avatar uri={item?.users?.profile_image} style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10 }} />
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontWeight: '600', fontSize: 13 }}>{item?.users?.name || item?.name}</Text>
