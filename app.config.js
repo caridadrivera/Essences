@@ -1,18 +1,12 @@
 import 'dotenv/config';
+import appJson from './app.json';
 
 export default {
-  expo: {
-    name: 'Essences',
-    slug: 'essences',
-    scheme: 'essences',
-
-    extra: {
-      SUPABASE_URL: process.env.SUPABASE_URL,
-      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-      eas: {
-        projectId: "2ca4800d-8fd2-46e9-adb1-9b8052b3db68",
-      },
-    },
+  ...appJson.expo,
+  extra: {
+    ...appJson.expo.extra,
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   },
 };
 

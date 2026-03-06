@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Modal, Pressable, Alert, Dimensions } from 'react-native';
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Avatar from './Avatar';
 import RenderHTML from 'react-native-render-html';
 import { wp } from '../helpers/common';
@@ -19,6 +19,8 @@ const PostCard = ({ item, setIsPostDeleted }) => {
   useEffect(() => {
     if (item?.postLikes) setLikes(item.postLikes);
   }, [item]);
+
+  const htmlSource = useMemo(() => ({ html: item.body || '' }), [item.body]);
 
   const liked = likes?.some(like => like.userId === user?.id);
 
@@ -178,7 +180,7 @@ const PostCard = ({ item, setIsPostDeleted }) => {
           </View>
           <View style={{ marginTop: 6 }}>
             {item?.body ? (
-              <RenderHTML contentWidth={wp(100)} source={{ html: item.body || '' }} baseStyle={{ fontSize: 14, lineHeight: 20, color: '#333' }} />
+              <RenderHTML contentWidth={wp(100)} source={htmlSource} baseStyle={{ fontSize: 14, lineHeight: 20, color: '#333' }} />
             ) : null}
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 8 }}>
@@ -210,4 +212,4 @@ const PostCard = ({ item, setIsPostDeleted }) => {
         menuText: { fontSize: 14, color: '#333' },
       });
 
-      export default PostCard;
+      export default React.memo(PostCard);
