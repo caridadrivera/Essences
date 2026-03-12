@@ -17,6 +17,8 @@ import HexagonIcon from './Hexagon'
 import UploadImageIcon from './uploadImageIcon'
 import UserSettingsIcon from './Settings'
 import MoreHorizontalIcon from './MoreHorizontalIcon'
+import CommentIcon from './CommentIcon'
+import RepostIcon from './RepostIcon'
 
 const icons = {
     home: HomeIcon, 
@@ -34,7 +36,9 @@ const icons = {
     hexagonIcon: HexagonIcon,
     uploadImageIcon: UploadImageIcon,
     settingsIcon: UserSettingsIcon,
-    moreIcon: MoreHorizontalIcon
+    moreIcon: MoreHorizontalIcon,
+    commentIcon: CommentIcon,
+    repostIcon: RepostIcon,
 }
 const Icon = ({name, ...props}) => {
     const IconComponent = icons[name]

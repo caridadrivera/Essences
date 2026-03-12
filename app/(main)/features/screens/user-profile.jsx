@@ -106,7 +106,8 @@ const userProfile = () => {
   const fetchPosts = async (topic) => {
     if (!user) return [];
 
-    const { data, error } = await supabase
+    // Fetch user's own posts
+    const { data: ownPosts, error: ownError } = await supabase
       .from('posts')
       .select(`
         *,
@@ -120,14 +121,54 @@ const userProfile = () => {
       `)
       .eq('topicId', topic.id)
       .eq('userId', user.id)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error(`Error fetching posts for topic ${topic.id}:`, error);
+    if (ownError) {
+      console.error(`Error fetching posts for topic ${topic.id}:`, ownError);
       return [];
     }
 
-    return data;
+    // Fetch reposted posts — get repost rows then fetch each post
+    const { data: repostRows, error: repostError } = await supabase
+      .from('reposts')
+      .select('postId, created_at')
+      .eq('userId', user.id);
+
+    let repostPostIds = [];
+    let repostDateMap = {};
+    if (!repostError && repostRows) {
+      repostPostIds = repostRows.map((r) => r.postId);
+      repostRows.forEach((r) => { repostDateMap[r.postId] = r.created_at; });
+    }
+
+    let repostedPostsData = [];
+    if (repostPostIds.length > 0) {
+      const { data: rpData, error: rpError } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          users (
+            name,
+            id,
+            profile_image,
+            bio
+          ),
+          postLikes(*)
+        `)
+        .in('id', repostPostIds);
+      if (!rpError && rpData) repostedPostsData = rpData;
+    }
+
+    let repostedPosts = repostedPostsData
+      .filter((p) => String(p.topicId) === String(topic.id))
+      .map((p) => ({ ...p, isRepost: true, repostedAt: repostDateMap[p.id] }));
+
+    // Merge and sort by most recent first
+    const merged = [...ownPosts, ...repostedPosts].sort(
+      (a, b) => new Date(b.repostedAt || b.created_at) - new Date(a.repostedAt || a.created_at)
+    );
+
+    return merged;
   };
 
   const fetchTopics = async () => {
@@ -349,38 +390,41 @@ const userProfile = () => {
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.topicHeader}>
-        <TopicTabs
-          topics={topics}
-          fetchPosts={fetchPosts}
-          user={user}
-          initialTopicId={selectedTopicId}
-          onPostsLoaded={onTopicChange}
-        />
-      </View>
-
-      <TouchableOpacity
-        onPress={() => {
-          setSelectedTopic(selectedTopicId);
-          setBottomSheetType('newPost')
-        }}
-        style={styles.addPostIconButton}
-      >
-        <Icon name='plusIcon' />
-      </TouchableOpacity>
-
-      <View style={styles.postsWrapper}>
-        {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
-          <FlatList
-            data={postsByTopic[selectedTopicId]}
-            keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-            renderItem={({ item }) => (
-              <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />
-            )}
+          <TopicTabs
+            topics={topics}
+            fetchPosts={fetchPosts}
+            user={user}
+            initialTopicId={selectedTopicId}
+            onPostsLoaded={onTopicChange}
           />
-        ) : (
-          <Text style={styles.noPosts}>No posts for this topic..</Text>
-        )}
-      </View>
+        </View>
+
+        <View style={styles.postsWrapper}>
+          {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
+            <FlatList
+              data={postsByTopic[selectedTopicId]}
+              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+              renderItem={({ item }) => (
+                <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />
+              )}
+            />
+          ) : (
+
+            <>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedTopic(selectedTopicId);
+                  setBottomSheetType('newPost')
+                }}
+                style={styles.addPostIconButton}
+              >
+                <Icon name='plusIcon' />
+              </TouchableOpacity>
+              <Text style={styles.noPosts}>Hmm... you don't have any posts for this topic - yet! </Text>
+
+
+            </>)}
+        </View>
       </View>
       {bottomSheetType && (
         <Modal transparent animationType="slide" visible onRequestClose={closeMenus}>
@@ -529,7 +573,8 @@ const styles = StyleSheet.create({
   addPostIconButton: {
     padding: 12,
     marginVertical: 12,
-    backgroundColor: theme.colors.primaryDark,
+    backgroundColor: 'theme.colors.primaryDark',
+    color: '#fff',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
