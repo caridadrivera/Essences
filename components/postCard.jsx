@@ -81,7 +81,6 @@ const PostCard = ({ item, setIsPostDeleted }) => {
       const newRepost = { userId: user.id, postId: item.id };
       setReposts([...reposts, newRepost]);
       const res = await createRepost(newRepost);
-      console.log('CREATE REPOST result:', JSON.stringify(res));
       if (!res.success) setReposts(previousReposts);
     }
   };
