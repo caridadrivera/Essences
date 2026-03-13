@@ -111,24 +111,25 @@ const CommentsSheet = ({ visible, onClose, postId, onCommentCountChange }) => {
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
-          <View style={styles.handle} />
-          <Text style={styles.title}>Comments</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
+        >
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.handle} />
+            <Text style={styles.title}>Comments</Text>
 
-          <FlatList
-            data={comments}
-            keyExtractor={(item) => item.id?.toString()}
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              <Text style={styles.empty}>No comments yet. Be the first!</Text>
-            }
-            renderItem={renderComment}
-          />
+            <FlatList
+              data={comments}
+              keyExtractor={(item) => item.id?.toString()}
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              ListEmptyComponent={
+                <Text style={styles.empty}>No comments yet. Be the first!</Text>
+              }
+              renderItem={renderComment}
+            />
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
             <View style={styles.inputRow}>
               <Avatar uri={user?.profile_image} size={30} style={styles.inputAvatar} />
               <TextInput
@@ -148,8 +149,8 @@ const CommentsSheet = ({ visible, onClose, postId, onCommentCountChange }) => {
                 <Text style={styles.sendText}>Post</Text>
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   );
@@ -159,7 +160,6 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
   },
   sheet: {
     backgroundColor: '#fff',

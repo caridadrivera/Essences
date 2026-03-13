@@ -228,13 +228,13 @@ const PostCard = ({ item, setIsPostDeleted }) => {
 
           <View style={styles.actions}>
             <TouchableOpacity onPress={() => setCommentsVisible(true)} style={styles.actionBtn}>
-              <Icon name="commentIcon" size={20} color="#777" />
+              <Icon name="commentIcon" size={14} color="#777" />
               <Text style={styles.actionCount}>{commentCount || 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onRepost} style={styles.actionBtn}>
               <Icon
                 name="repostIcon"
-                size={20}
+                size={14}
                 color={isReposted ? theme.colors.primaryDark : '#777'}
               />
               <Text style={[styles.actionCount, isReposted && { color: theme.colors.primaryDark }]}>
@@ -242,7 +242,7 @@ const PostCard = ({ item, setIsPostDeleted }) => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onLike} style={styles.actionBtn}>
-              <Icon name="hexagonIcon" size={20} fill={liked ? 'yellow' : 'white'} />
+              <Icon name="hexagonIcon" size={14} fill={liked ? 'yellow' : 'white'} />
               <Text style={styles.actionCount}>{likes?.length || 0}</Text>
             </TouchableOpacity>
           </View>

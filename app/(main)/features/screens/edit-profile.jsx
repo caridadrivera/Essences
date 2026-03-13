@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Modal, Button } from 'react-native'
+import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Modal, Button, KeyboardAvoidingView, Platform } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
 import Avatar from '../../../../components/Avatar'
@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
 const EditProfile = () => {
     const { user: currentUser, setUserData } = useAuth()
@@ -214,6 +215,13 @@ const EditProfile = () => {
 
     return (
         <ScreenWrapper>
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                enableOnAndroid={true}
+                extraScrollHeight={120}
+                showsVerticalScrollIndicator={false}
+            >
             <View style={styles.header}>
                 <View style={styles.backgroundImgContainer}>
                     <Image
@@ -282,6 +290,7 @@ const EditProfile = () => {
                     </View>
                 </Modal>
             </View>
+            </KeyboardAwareScrollView>
 
                 <Modal
                     visible={permissionStringModalVisible}

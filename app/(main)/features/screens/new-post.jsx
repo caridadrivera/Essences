@@ -72,18 +72,19 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
 
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={onClose}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContainer}
-        enableOnAndroid={true}
-        extraScrollHeight={200}
-        keyboardShouldPersistTaps="handled"
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.scrollContainer}
+      enableOnAndroid={true}
+      extraScrollHeight={200}
+      keyboardShouldPersistTaps="handled"
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isVisible}
+          onRequestClose={onClose}>
+
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
@@ -104,9 +105,11 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
               </View>
             </View>
           </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAwareScrollView>
-    </Modal>
+
+        </Modal>
+      </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
+
   )
 }
 

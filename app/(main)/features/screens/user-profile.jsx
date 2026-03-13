@@ -401,13 +401,27 @@ const userProfile = () => {
 
         <View style={styles.postsWrapper}>
           {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
-            <FlatList
+            <>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedTopic(selectedTopicId);
+                  setBottomSheetType('newPost')
+                }}
+                style={styles.addPostIconButton}
+              >
+                <Icon name='plusIcon' />
+              </TouchableOpacity>
+
+                 <FlatList
               data={postsByTopic[selectedTopicId]}
               keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
               renderItem={({ item }) => (
                 <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />
               )}
             />
+            
+            </>
+         
           ) : (
 
             <>
