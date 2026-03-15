@@ -49,7 +49,7 @@ const Login = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContainer}
         enableOnAndroid={true}
-        extraScrollHeight={150}
+        extraScrollHeight={20}
         keyboardShouldPersistTaps="handled"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -113,7 +113,8 @@ export default Login;
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: "center", // Keeps content centered even when scrolling
+    justifyContent: "center",
+    paddingVertical: 20,
   },
   container: {
     flex: 1,

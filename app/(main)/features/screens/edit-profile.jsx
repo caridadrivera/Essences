@@ -162,8 +162,8 @@ const EditProfile = () => {
     const onSubmit = async () => {
         let userData = { ...user }
         let { name, profile_image, background_image, bio } = userData;
-        if (!name || !bio || !profile_image || !background_image) {
-            Alert.alert('Profile', "Please fill out all fields")
+        if (!name) {
+            Alert.alert('Profile', "Your name can't be empty")
             return
         }
         setLoading(true)

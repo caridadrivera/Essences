@@ -360,7 +360,7 @@ const userProfile = () => {
                     onPress={(e) => {
                       e.stopPropagation();
                       closeMenu();
-                      navigateToBlockedList();
+                      router.push('/features/screens/blocked-users');
                     }}
                   >
                     <Text style={styles.menuText}>Blocked List</Text>
