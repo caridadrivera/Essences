@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { canPostContent } from './moderationService';
 
 export const fetchComments = async (postId) => {
   try {
@@ -20,6 +21,25 @@ export const fetchComments = async (postId) => {
 
 export const createComment = async (comment) => {
   try {
+    // Moderate comment content before creating
+    if (comment.body) {
+      const moderationCheck = await canPostContent(comment.body);
+      
+      if (!moderationCheck.canPost) {
+        return {
+          success: false,
+          msg: moderationCheck.message,
+          moderation: moderationCheck
+        };
+      }
+
+      // Flag comment if it requires review
+      if (moderationCheck.requiresReview) {
+        comment.flaggedForReview = true;
+        comment.reviewReason = moderationCheck.message;
+      }
+    }
+
     const { data, error } = await supabase
       .from('comments')
       .insert(comment)

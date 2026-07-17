@@ -6,7 +6,7 @@ import React, { useState, useRef } from 'react'
 import RichTextEditor from '../../../../components/RichTextEditor'
 import { Alert } from 'react-native'
 import { createOrUpdatePost } from '../../../../services/postService'
-import { analyzeText } from '../../../../services/perspecticeService'
+import { canPostContent } from '../../../../services/moderationService'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
@@ -15,7 +15,6 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
   const bodyRef = useRef("")
   const editorRef = useRef("")
   const [loading, setLoading] = useState(false)
-  const [toxicityScore, setToxicityScore] = useState(null);
 
   const onSubmit = async () => {
     if (!bodyRef.current) {
@@ -24,35 +23,26 @@ const NewPost = ({ isVisible, user, topicId, onClose }) => {
     }
 
     try {
-      const score = await analyzeText(bodyRef.current);
-      setToxicityScore(score);
+      const moderationCheck = await canPostContent(bodyRef.current);
 
-      if (score > 0.7) {
-        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
-        const data = {
-          body: bodyRef.current,
-          userId: user?.id,
-          topicId: topicId,
-          isToxic: true
-        }
-        processPost(data)
-
-      } else {
-        const data = {
-          body: bodyRef.current,
-          userId: user?.id,
-          topicId: topicId,
-          isToxic: false
-        }
-        processPost(data)
+      if (!moderationCheck.canPost) {
+        Alert.alert('Content Policy', moderationCheck.message)
+        return
       }
+
+      const data = {
+        body: bodyRef.current,
+        userId: user?.id,
+        topicId: topicId,
+        flaggedForReview: moderationCheck.requiresReview,
+        reviewReason: moderationCheck.message
+      }
+      
+      processPost(data)
 
     } catch (error) {
       Alert.alert('Error', 'Unable to analyze the content.');
     }
-
-
-
   }
 
   const processPost = async (data) => {

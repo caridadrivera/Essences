@@ -4,7 +4,7 @@ import { createNotification } from './notificationService'
 export const createOrUpdatePost = async (post)=>{
 
     try{
-                const {data, error} = await supabase
+        const {data, error} = await supabase
                 .from('posts')
                 .upsert(post)
                 .select(`
