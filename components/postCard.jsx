@@ -253,6 +253,7 @@ const PostCard = ({ item, setIsPostDeleted }) => {
         visible={commentsVisible}
         onClose={() => setCommentsVisible(false)}
         postId={item?.id}
+        postAuthorId={item?.userId}
         onCommentCountChange={(count) => setCommentCount(count)}
       />
     </View>

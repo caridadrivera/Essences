@@ -26,7 +26,7 @@ const formatTime = (dateStr) => {
   return `${Math.floor(diff / 86400)}d`;
 };
 
-const CommentsSheet = ({ visible, onClose, postId, onCommentCountChange }) => {
+const CommentsSheet = ({ visible, onClose, postId, postAuthorId, onCommentCountChange }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
@@ -68,7 +68,7 @@ const CommentsSheet = ({ visible, onClose, postId, onCommentCountChange }) => {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          const res = await deleteComment(commentId, user.id);
+          const res = await deleteComment(commentId, user.id, postAuthorId);
           if (res.success) {
             const updated = comments.filter((c) => c.id !== commentId);
             setComments(updated);
@@ -85,7 +85,7 @@ const CommentsSheet = ({ visible, onClose, postId, onCommentCountChange }) => {
     <TouchableOpacity
       activeOpacity={0.85}
       onLongPress={() => {
-        if (item.userId === user?.id) handleDeleteComment(item.id);
+        if (item.userId === user?.id || postAuthorId === user?.id) handleDeleteComment(item.id);
       }}
     >
       <View style={styles.commentRow}>

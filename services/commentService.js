@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { canPostContent } from './moderationService';
 
 export const fetchComments = async (postId) => {
   try {
@@ -21,25 +20,6 @@ export const fetchComments = async (postId) => {
 
 export const createComment = async (comment) => {
   try {
-    // Moderate comment content before creating
-    if (comment.body) {
-      const moderationCheck = await canPostContent(comment.body);
-      
-      if (!moderationCheck.canPost) {
-        return {
-          success: false,
-          msg: moderationCheck.message,
-          moderation: moderationCheck
-        };
-      }
-
-      // Flag comment if it requires review
-      if (moderationCheck.requiresReview) {
-        comment.flaggedForReview = true;
-        comment.reviewReason = moderationCheck.message;
-      }
-    }
-
     const { data, error } = await supabase
       .from('comments')
       .insert(comment)
@@ -56,12 +36,28 @@ export const createComment = async (comment) => {
   }
 };
 
-export const deleteComment = async (commentId, userId) => {
+export const deleteComment = async (commentId, userId, postAuthorId) => {
   try {
+    // Allow deletion if user is the comment author OR the post author
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('userId')
+      .eq('id', commentId)
+      .single();
+
+    if (fetchError || !comment) {
+      return { success: false, msg: 'Comment not found' };
+    }
+
+    // Only allow if user is comment author or post author
+    if (comment.userId !== userId && postAuthorId !== userId) {
+      return { success: false, msg: 'You do not have permission to delete this comment' };
+    }
+
     const { error } = await supabase
       .from('comments')
       .delete()
-      .match({ id: commentId, userId });
+      .eq('id', commentId);
 
     if (error) return { success: false, msg: error.message };
     return { success: true };
