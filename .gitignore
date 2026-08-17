@@ -59,3 +59,9 @@ yarn-error.*
 .branches
 .temp
 .env
+.
+
+# BMAD
+_bmad/
+_bmad-output/
+.claude
