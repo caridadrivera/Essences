@@ -241,8 +241,13 @@ const PostCard = ({ item, setIsPostDeleted }) => {
                 {reposts?.length || 0}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={onLike} style={styles.actionBtn}>
-              <Icon name="hexagonIcon" size={14} fill={liked ? 'yellow' : 'white'} />
+            <TouchableOpacity
+              onPress={onLike}
+              style={styles.actionBtn}
+              accessibilityRole="button"
+              accessibilityLabel={liked ? `Resonated, ${likes?.length || 0}` : `Resonate, ${likes?.length || 0}`}
+            >
+              <Icon name="hexResonate" size={18} active={liked} />
               <Text style={styles.actionCount}>{likes?.length || 0}</Text>
             </TouchableOpacity>
           </View>
@@ -262,10 +267,10 @@ const PostCard = ({ item, setIsPostDeleted }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderColor: '#e0e0e0',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.hairline,
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: theme.designRadius.md,
     paddingVertical: 12,
     paddingHorizontal: 4,
     marginVertical: 8,
@@ -274,7 +279,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1 },
   menu: {
     position: 'absolute',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 8,
     padding: 8,
     shadowColor: '#000',
@@ -284,7 +289,7 @@ const styles = StyleSheet.create({
     minWidth: 140,
   },
   menuItem: { paddingVertical: 8, paddingHorizontal: 12 },
-  menuText: { fontSize: 14, color: '#333' },
+  menuText: { fontSize: 14, color: theme.colors.inkPrimary },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -293,7 +298,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  actionCount: { fontSize: 12, color: '#777' },
+  actionCount: { fontSize: 12, color: theme.colors.inkSecondary },
   repostBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,7 +306,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     paddingHorizontal: 4,
   },
-  repostText: { fontSize: 12, color: theme.colors.textLight },
+  repostText: { fontSize: 12, color: theme.colors.inkSecondary },
 });
 
 export default React.memo(PostCard);

@@ -8,8 +8,8 @@ const Input = (props) => {
     <View style={[styles.container, props.containerStyle && props.containerStyle]}>
       {props.icon && props.icon}
       <TextInput 
-        style={{flex: 1}}
-        placeholderTextColor={theme.colors.textLight}
+        style={{flex: 1, color: theme.colors.inkPrimary}}
+        placeholderTextColor={theme.colors.inkDisabled}
         ref={props.inputRef && props.inputRef}
         {...props}/>
     </View>
@@ -24,9 +24,10 @@ const styles = StyleSheet.create({
         height: hp(7.2),
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 0.4,
-        borderColor: theme.colors.text,
-        borderRadius: theme.radius.xxl,
+        borderWidth: 1,
+        borderColor: theme.colors.hairline,
+        backgroundColor: theme.colors.surfaceRaised,
+        borderRadius: theme.designRadius.md,
         borderCurve: 'continuous',
         paddingHorizontal: 18,
         gap: 12

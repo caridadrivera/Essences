@@ -8,7 +8,6 @@ import Icon from '../../../assets/icons';
 import RichTextEditor from '../../../components/RichTextEditor';
 import { useRef } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { analyzeText } from '../../../services/perspecticeService';
 import { createOrUpdatePost } from '../../../services/postService';
 import { getUserData } from '../../../services/userService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';

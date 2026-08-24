@@ -33,16 +33,16 @@ export default ButtonComponent
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: theme.colors.primaryDark,
+    backgroundColor: theme.colors.rust,
     height: hp(6.6),
     justifyContent: 'center',
     alignItems: 'center',
     borderCurve: 'continuous',
-    borderRadius: theme.radius.xl
+    borderRadius: theme.designRadius.full
   },
   text: {
     fontSize: hp(2.2),
-    color: 'white',
+    color: theme.colors.inkPrimary,
     fontWeight: theme.fonts.bold
   }
 })

@@ -1,375 +1,262 @@
-import { StyleSheet, Text, View, ScrollView, Pressable, TouchableOpacity, useWindowDimensions, SafeAreaView, StatusBar, FlatList } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import {
+  StyleSheet, Text, View, TextInput, Pressable, TouchableOpacity,
+  FlatList, KeyboardAvoidingView, Platform, ActivityIndicator
+} from 'react-native'
+import React, { useState, useRef, useCallback } from 'react'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
-import { supabase } from '../../../../lib/supabase'
-import { useAuth } from '../../../../context/AuthContext'
 import { theme } from '../../../../constants/theme'
-import LogOutButton from '../../../../components/LogOutButton'
-import { router } from 'expo-router'
 import { hp, wp } from '../../../../helpers/common'
-import Icon from '../../../../assets/icons'
-import Avatar from '../../../../components/Avatar'
-import Loading from '../../../../components/Loading'
-import { getUserImage } from '../../../../services/userProfileImage'
-import { Image } from 'expo-image'
-import { useNotification } from '../../../../context/NotificationContext'
 import { useRouter } from 'expo-router'
-import TopicTabs from '../../../../components/TopicTabs'
-import PostCard from '../../../../components/postCard'
-import PostModal from '../../../../components/postModal'
-//on click of a topic, do api call to 
+import { useAuth } from '../../../../context/AuthContext'
+import { Image } from 'expo-image'
+import Avatar from '../../../../components/Avatar'
+import Icon from '../../../../assets/icons'
+import LogOutButton from '../../../../components/LogOutButton'
+import { useNotification } from '../../../../context/NotificationContext'
+import { getUserImage } from '../../../../services/userProfileImage'
+import { getAIReply } from '../../../../services/promptChatService'
+import { createOrUpdateJournalEntry } from '../../../../services/journalService'
+import { canPostContent } from '../../../../services/moderationService'
 
-const Home = ({ }) => {
-  const [topics, setTopics] = useState([]);
-  const [postsByTopic, setPostsByTopic] = useState({});
-  const [selectedTopicId, setSelectedTopicId] = useState(null)
-  const { user, setAuth } = useAuth();
-  const router = useRouter();
-  const [selectedPost, setSelectedPost] = useState(null)
-  const [modalVisible, setModalVisible] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [hasMorePosts, setHasMorePosts] = useState(true)
+const OPENING_PROMPT = 'What feels alive today?'
+
+
+const Home = () => {
+  const router = useRouter()
+  const { user } = useAuth()
   const { notificationCount, setNotificationCount } = useNotification()
+  const flatListRef = useRef(null)
+  const [messages, setMessages] = useState([
+    { id: '0', role: 'assistant', content: OPENING_PROMPT }
+  ])
+  const [inputText, setInputText] = useState('')
+  const [aiThinking, setAiThinking] = useState(false)
+  // 'chat' | 'decide' — decide appears once the AI offers the post/journal choice
+  const [stage, setStage] = useState('chat')
+  const [posting, setPosting] = useState(false)
 
+  const iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
-  useEffect(() => {
-    setLoading(true)
-    fetchData();   
+  const sendMessage = async () => {
+    const text = inputText.trim()
+    if (!text || aiThinking) return
 
-    const postChannel = supabase
-      .channel('realtime:posts:home')
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, handlePostDelete)
-      .subscribe();
+    const userMsg = { id: Date.now().toString(), role: 'user', content: text }
+    const next = [...messages, userMsg]
+    setMessages(next)
+    setInputText('')
+    setAiThinking(true)
 
-    return () => {
-      if (postChannel) {
-        supabase.removeChannel(postChannel)
+    const history = next.map(m => ({ role: m.role, content: m.content }))
+    const res = await getAIReply(history)
+    setAiThinking(false)
+
+    const aiMsg = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: res.success
+        ? res.reply
+        : "I'm having trouble connecting — try again in a moment."
+    }
+    setMessages(prev => [...prev, aiMsg])
+
+    if (res.success) {
+      const lower = res.reply.toLowerCase()
+      if (lower.includes('share') && (lower.includes('hive') || lower.includes('others') || lower.includes('public') || lower.includes('yourself'))) {
+        setStage('decide')
       }
     }
-  }, []);
-
- 
-
-  const fetchData = async () => {
-    await fetchTopics();
-    setLoading(false);
-  };
-
-  const fetchTopics = async () => {
-    const { data, error } = await supabase
-      .from('topics')
-      .select('id, title')
-      .is('user_id', null);
-      
-    if (error) {
-      console.error('Error fetching topics:', error);
-      return;
-    }
-
-    setTopics(data);
-    if (data?.length) setSelectedTopicId(prev => prev ?? data[0].id)
-  };
-
-
-  const fetchPosts = async (topic, user) => {
-
-    const { data: blockedUsers, error: blockError } = await supabase
-      .from('blocked_users')
-      .select('blocked_user_id')
-      .eq('user_id', user.id);
-
-    if (blockError) {
-      console.error('Error fetching blocked users:', blockError);
-      return [];
-    }
-
-    const blockedIds = blockedUsers.map(user => user.blocked_user_id);
-    const exclusionIds = [...blockedIds, user.id];
-
-    
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        users (
-          name,
-          profile_image,
-          background_image,
-          id,
-          bio
-        ),
-        postLikes(*)
-      `)
-      .eq('topicId', topic.id)
-      .not('userId', 'in', `(${exclusionIds.join(',')})`)
-      .order('created_at', { ascending: false })
-
-
-    if (error) {
-      console.error(`Error fetching posts for topic ${topic.id}:`, error);
-      return [];
-    }
-
-    return data;
-  };
-  let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
-
-  const handleTopicPress = async (topic) => {
-    router.push({
-      pathname: `/posts-by-topic/${topic.id}`,
-      params: { topicId: topic.id, title: topic.title }
-    });
-  };
-
-  const onTopicChange = (topicId, posts) =>{
-    setSelectedTopicId(topicId)
-    setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
   }
 
-  const handlePostDelete = (payload) => {
-    if (payload?.old?.id) {
-      const deletedPostId = payload.old.id;
-      const deletedTopicId = payload.old.topicId;
+  // Combine all user turns as the draft body
+  const userDraft = messages.filter(m => m.role === 'user').map(m => m.content).join('\n\n')
 
-      setPostsByTopic((prev) => ({
-        ...prev,
-        [deletedTopicId]: (prev[deletedTopicId] || []).filter(
-          (post) => post.id !== deletedPostId
-        )
-      }));
-    }
-  };
+  const handleShareToHive = async () => {
+    if (!userDraft || posting) return
+    setPosting(true)
+    const mod = await canPostContent(userDraft)
+    setPosting(false)
+    if (!mod.canPost) { alert(mod.message); return }
+    router.push({ pathname: '/features/screens/hives', params: { draftBody: userDraft, openComposer: '1' } })
+  }
 
+  const handleKeepPrivate = async () => {
+    if (!userDraft || posting) return
+    setPosting(true)
+    await createOrUpdateJournalEntry({ userId: user.id, body: userDraft, feeling: 'grateful' })
+    setPosting(false)
+    router.push('/features/screens/journal-today')
+  }
+
+  const resetChat = () => {
+    setMessages([{ id: '0', role: 'assistant', content: OPENING_PROMPT }])
+    setStage('chat')
+    setInputText('')
+  }
 
   return (
-
-
-    <ScreenWrapper bg={'white'}>
+    <ScreenWrapper bg={theme.colors.surfaceBase}>
       <View style={styles.header}>
-        <Image source={iconImg} style={{
-          height: 108,
-          width: "50%"
-        }} />
-
+        <Image source={iconImg} style={{ height: 80, width: '42%' }} />
         <View style={styles.icons}>
-          <Pressable style={styles.buttonStyle} onPress={() => router.push({
-              pathname: '/features/screens/user-profile',
-              params: { user: user, id: user.id, profile_img: user.profile_image, background_img: user.background_image ,name: user.name, bio: user.bio}
-            }
-            )} >
-            <Avatar
-              uri={user?.profile_image}
-              size={hp(4.3)}
-              rounded={theme.radius.sm}
-              style={{ borderWidth: 2 }} />
+          <Pressable style={styles.avatarBtn} onPress={() => router.push({
+            pathname: '/features/screens/user-profile',
+            params: { user, id: user.id, profile_img: user.profile_image, background_img: user.background_image, name: user.name, bio: user.bio }
+          })}>
+            <Avatar uri={user?.profile_image} size={hp(4.3)} rounded={theme.designRadius.full} style={{ borderWidth: 2, borderColor: theme.colors.hairline }} />
           </Pressable>
-          <TouchableOpacity style={styles.relateButton} onPress={() => {
-            setNotificationCount(0)
-            router.push('/features/screens/notifications')
-          }}>
-            <Icon name="hexagonIcon" fill={theme.colors.likeYellow} />
+          <TouchableOpacity style={styles.iconBtn} onPress={() => { setNotificationCount(0); router.push('/features/screens/notifications') }}>
+            <Icon name="hexResonate" size={22} active={true} />
             {notificationCount > 0 && (
-              <View style={styles.pill}>
-                <Text style={styles.pillText}>{notificationCount}</Text>
-              </View>
+              <View style={styles.badge}><Text style={styles.badgeText}>{notificationCount}</Text></View>
             )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/features/screens/hives')}>
+            <Icon name="home" size={22} color={theme.colors.inkSecondary} />
           </TouchableOpacity>
           <LogOutButton />
         </View>
       </View>
 
-      {loading ? (
-        <View style={{ marginVertical: 0}}>
-          <Loading />
-        </View>) : (
-    <View style={styles.topicContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hives</Text>
-      </View>     
-
-        <TopicTabs
-          topics={topics}
-          fetchPosts={fetchPosts}
-          user={user}
-          initialTopicId={selectedTopicId}
-          onPostsLoaded={onTopicChange}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.chatList}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          renderItem={({ item }) => (
+            <View style={[styles.bubble, item.role === 'assistant' ? styles.aiBubble : styles.userBubble]}>
+              <Text style={item.role === 'assistant' ? styles.aiText : styles.userText}>{item.content}</Text>
+            </View>
+          )}
+          ListFooterComponent={aiThinking ? (
+            <View style={[styles.bubble, styles.aiBubble]}>
+              <ActivityIndicator size="small" color={theme.colors.inkSecondary} />
+            </View>
+          ) : null}
         />
 
-        <View style={styles.postsWrapper}>
-          {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
-            <FlatList
-              data={postsByTopic[selectedTopicId]}
-              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-              renderItem={({ item }) => (
-                <PostCard item={item} openPostMenu={() => { setSelectedPost(item); setModalVisible(true); }} />
-              )}
-           />
-          ) : (
-            <Text style={styles.noPosts}>No posts for this topic..</Text>
-          )}
-        </View>
+        {stage === 'decide' && !aiThinking && (
+          <View style={styles.decideRow}>
+            <Pressable style={[styles.decideBtn, styles.decidePrimary]} onPress={handleShareToHive} disabled={posting}>
+              <Text style={styles.decidePrimaryText}>Share to a Hive →</Text>
+            </Pressable>
+            <Pressable style={[styles.decideBtn, styles.decideSecondary]} onPress={handleKeepPrivate} disabled={posting}>
+              <Text style={styles.decideSecondaryText}>Keep it private</Text>
+            </Pressable>
+            <Pressable onPress={resetChat}><Text style={styles.resetText}>Start over</Text></Pressable>
+          </View>
+        )}
 
-     
-    
-     </View>
-      )}
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Write something…"
+            placeholderTextColor={theme.colors.inkDisabled}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            onSubmitEditing={sendMessage}
+            editable={!aiThinking}
+          />
+          <Pressable style={[styles.sendBtn, (!inputText.trim() || aiThinking) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={aiThinking || !inputText.trim()}>
+            <Text style={styles.sendText}>→</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   )
 }
 
-export default Home;
+export default Home
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    paddingLeft: '10px'
-  },
   header: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    marginHorizontal: wp(2),
-    borderRadius: 28
+    paddingHorizontal: wp(4),
+    marginBottom: 8,
   },
-  headerText: {
+  icons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  avatarBtn: { marginHorizontal: 4 },
+  iconBtn: {
+    position: 'relative',
+    padding: 6,
+    borderRadius: theme.designRadius.sm,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  badge: {
+    position: 'absolute', top: -4, right: -6,
+    minWidth: 16, height: 16, paddingHorizontal: 4,
+    justifyContent: 'center', alignItems: 'center',
+    borderRadius: 8, backgroundColor: theme.colors.dangerWarm,
+  },
+  badgeText: { color: '#fff', fontSize: hp(1.1), fontWeight: theme.fonts.bold },
+  chatList: { paddingHorizontal: wp(4), paddingVertical: 12, flexGrow: 1, justifyContent: 'flex-end' },
+  bubble: {
+    maxWidth: '82%',
+    borderRadius: theme.designRadius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginVertical: 4,
+  },
+  aiBubble: { alignSelf: 'flex-start', backgroundColor: theme.colors.sage },
+  userBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+  },
+  aiText: { fontSize: hp(1.9), color: '#3E4530', lineHeight: hp(2.7) },
+  userText: { fontSize: hp(1.9), color: theme.colors.inkPrimary, lineHeight: hp(2.7) },
+  decideRow: {
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: wp(5),
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.hairline,
+  },
+  decideBtn: { width: '100%', paddingVertical: 13, borderRadius: theme.designRadius.full, alignItems: 'center' },
+  decidePrimary: { backgroundColor: theme.colors.rust },
+  decidePrimaryText: { color: theme.colors.inkPrimary, fontWeight: theme.fonts.bold, fontSize: hp(1.8) },
+  decideSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.colors.inkSecondary },
+  decideSecondaryText: { color: theme.colors.inkPrimary, fontWeight: theme.fonts.bold, fontSize: hp(1.8) },
+  resetText: { fontSize: hp(1.5), color: theme.colors.inkSecondary, marginTop: 4 },
+  inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10
-  }
-  ,
-  relateButton: {
-    marginHorizontal: 10,
-    padding: 4,
-    margin: 10,
-    borderRadius: theme.radius.sm,
-    backgroundColor: 'rgba(0,0,0,0.07)',
+    alignItems: 'flex-end',
+    gap: 8,
+    paddingHorizontal: wp(4),
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.hairline,
+    backgroundColor: theme.colors.surfaceBase,
   },
-  title: {
-    color: theme.colors.text,
-    fontSize: hp(3.2),
-    fontWeight: theme.fonts.bold,
-    marginBottom: 10,
-    marginRight: 10
-  },
-  uploadIcon: {
-    position: 'absolute',
-    marginTop: 38,
-    botton: 0,
-    padding: 4,
-    borderRadius: 50,
-    backgroundColor: 'white',
-    shadowColor: theme.colors.textLight,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    elevation: 7
-  },
-  avantarImg: {
-    height: hp(4.3),
-    width: hp(4.3),
-    borderRadius: theme.radius.sm,
-    borderCurve: 'continuous',
-    borderColor: theme.colors.gray,
-    borderWidth: 3
-  },
-  icons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 18
-  },
-  listStyle: {
-    paddingTop: 20,
-    paddingHorizontal: wp(4)
-  },
-  noPosts: {
-    fontSize: hp(2),
-    textAlign: 'center',
-    color: theme.colors.text
-  },
-  usersButton: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-  },
-  buttonStyle: {
-    marginHorizontal: 10,
-  },
-  postsContainer: {
-    paddingTop: 28
-  },
-  pill: {
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: theme.colors.amber
-  },
-  pillText: {
-    color: '#fff',
-    fontSize: hp(1.2),
-    fontWeight: theme.fonts.bold
-  },
-    topicContainer: {
+  input: {
     flex: 1,
-    paddingHorizontal: 16,
-    marginTop: 16,
+    minHeight: hp(5.5),
+    maxHeight: hp(14),
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+    borderRadius: theme.designRadius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: hp(1.9),
+    color: theme.colors.inkPrimary,
   },
-  topicsHeader: {
-    paddingVertical: 16,
+  sendBtn: {
+    width: hp(5.5),
+    height: hp(5.5),
+    borderRadius: theme.designRadius.full,
+    backgroundColor: theme.colors.rust,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    paddingBottom: 10,
-  },
-  row: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  }
-
-  ,
-  simpleTabs: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
-    width: '100%'
-  },
-  tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: 'transparent'
-  }
-
-  ,
-  postsWrapper: {
-    marginTop: 12,
-    flex: 1
-  },
-  postItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)'
-  },
-  postTitle: {
-    fontSize: hp(2.1),
-    fontWeight: theme.fonts.semibold,
-    color: theme.colors.text
-  },
-  postExcerpt: {
-    marginTop: 6,
-    color: theme.colors.textLight
-  }
-
+  sendBtnDisabled: { opacity: 0.4 },
+  sendText: { fontSize: hp(2.4), color: theme.colors.inkPrimary, fontWeight: theme.fonts.bold },
 })
+

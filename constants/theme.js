@@ -12,14 +12,29 @@ export const theme = {
 
     yellow: '#e8e1a2',
     likeYellow: '#ebd50e',
-    amber: '#1E40AF'
+    amber: '#1E40AF',
+
+    // DESIGN.md editorial palette
+    surfaceBase: '#F6F1E7',
+    surfaceRaised: '#FEFCF8',
+    inkPrimary: '#241713',
+    inkSecondary: '#6B5F52',
+    inkDisabled: '#BBAF9F',
+    rust: '#C46A50',
+    sage: '#CBD3AE',
+    peach: '#EFC08A',
+    hexYellow: '#FFD00D',
+    hairline: '#E4DBC9',
+    dangerWarm: '#9A3324'
 
  },
  fonts: {
     medium: '500',
     semibold: '600',
     bold: '700',
-    extrabold: '800'
+    extrabold: '800',
+    display: 'Fraunces_600SemiBold',
+    displayItalic: 'Fraunces_600SemiBold_Italic'
 
  }, 
  radius: {
@@ -29,5 +44,12 @@ export const theme = {
     lg: 16, 
     xl: 18, 
     xxl: 22
+ },
+ // Exact rounded scale from DESIGN.md "Shapes"
+ designRadius: {
+    sm: 10,
+    md: 20,
+    lg: 28,
+    full: 9999
  }
 }
