@@ -2,7 +2,7 @@ import {
   StyleSheet, Text, View, Modal, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback,
   Keyboard
 } from 'react-native'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import RichTextEditor from '../../../../components/RichTextEditor'
 import { Alert } from 'react-native'
 import { createOrUpdatePost } from '../../../../services/postService'
@@ -10,11 +10,18 @@ import { canPostContent } from '../../../../services/moderationService'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
-const NewPost = ({ isVisible, user, topicId, onClose }) => {
+const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
 
-  const bodyRef = useRef("")
+  const bodyRef = useRef(initialBody || "")
   const editorRef = useRef("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isVisible && initialBody) {
+      bodyRef.current = initialBody
+      editorRef.current?.setContentHTML(initialBody)
+    }
+  }, [isVisible])
 
   const onSubmit = async () => {
     if (!bodyRef.current) {

@@ -17,6 +17,8 @@ import { getUserImage } from '../../../../services/userProfileImage'
 import { getAIReply } from '../../../../services/promptChatService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
 import { canPostContent } from '../../../../services/moderationService'
+import { fetchGlobalTopics, matchHiveToMood } from '../../../../services/postService'
+import { detectMood } from '../../../../services/sentimentService'
 
 const OPENING_PROMPT = 'What feels alive today?'
 
@@ -34,6 +36,8 @@ const Home = () => {
   // 'chat' | 'decide' — decide appears once the AI offers the post/journal choice
   const [stage, setStage] = useState('chat')
   const [posting, setPosting] = useState(false)
+  const [mood, setMood] = useState('calm')
+  const [matchedHive, setMatchedHive] = useState(null)
 
   const iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
@@ -64,6 +68,15 @@ const Home = () => {
       const lower = res.reply.toLowerCase()
       if (lower.includes('share') && (lower.includes('hive') || lower.includes('others') || lower.includes('public') || lower.includes('yourself'))) {
         setStage('decide')
+
+        const draftSoFar = next.filter(m => m.role === 'user').map(m => m.content).join('\n\n')
+        const detectedMood = detectMood(draftSoFar)
+        setMood(detectedMood)
+
+        const topicsRes = await fetchGlobalTopics()
+        if (topicsRes.success) {
+          setMatchedHive(matchHiveToMood(topicsRes.data, detectedMood))
+        }
       }
     }
   }
@@ -77,13 +90,16 @@ const Home = () => {
     const mod = await canPostContent(userDraft)
     setPosting(false)
     if (!mod.canPost) { alert(mod.message); return }
-    router.push({ pathname: '/features/screens/hives', params: { draftBody: userDraft, openComposer: '1' } })
+    router.push({
+      pathname: '/features/screens/hives',
+      params: { draftBody: userDraft, openComposer: '1', topicId: matchedHive?.id, topicTitle: matchedHive?.title }
+    })
   }
 
   const handleKeepPrivate = async () => {
     if (!userDraft || posting) return
     setPosting(true)
-    await createOrUpdateJournalEntry({ userId: user.id, body: userDraft, feeling: 'grateful' })
+    await createOrUpdateJournalEntry({ userId: user.id, body: userDraft, feeling: mood })
     setPosting(false)
     router.push('/features/screens/journal-today')
   }
@@ -92,6 +108,8 @@ const Home = () => {
     setMessages([{ id: '0', role: 'assistant', content: OPENING_PROMPT }])
     setStage('chat')
     setInputText('')
+    setMood('calm')
+    setMatchedHive(null)
   }
 
   return (
@@ -140,7 +158,7 @@ const Home = () => {
         {stage === 'decide' && !aiThinking && (
           <View style={styles.decideRow}>
             <Pressable style={[styles.decideBtn, styles.decidePrimary]} onPress={handleShareToHive} disabled={posting}>
-              <Text style={styles.decidePrimaryText}>Share to a Hive →</Text>
+              <Text style={styles.decidePrimaryText}>Share to {matchedHive?.title || 'a Hive'} →</Text>
             </Pressable>
             <Pressable style={[styles.decideBtn, styles.decideSecondary]} onPress={handleKeepPrivate} disabled={posting}>
               <Text style={styles.decideSecondaryText}>Keep it private</Text>

@@ -1,6 +1,28 @@
 import { supabase } from "../lib/supabase"
 import { createNotification } from './notificationService'
 
+export const fetchGlobalTopics = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('topics')
+            .select('id, title')
+            .is('user_id', null)
+
+        if (error) return { success: false, msg: 'Could not fetch hives' }
+        return { success: true, data }
+    } catch (error) {
+        return { success: false, msg: 'Could not fetch hives' }
+    }
+}
+
+// Picks the Hive whose title best matches the mood keyword; falls back to the first Hive.
+// [ASSUMPTION] Hive titles contain mood-related words (e.g. "Gratitude", "Calm") - not confirmed with product.
+export const matchHiveToMood = (topics, mood) => {
+    if (!topics?.length) return null
+    const byMood = topics.find(t => t.title?.toLowerCase().includes(mood))
+    return byMood || topics[0]
+}
+
 export const createOrUpdatePost = async (post)=>{
 
     try{

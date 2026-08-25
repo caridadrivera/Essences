@@ -13,10 +13,11 @@ import Loading from '../../../../components/Loading'
 import { getUserImage } from '../../../../services/userProfileImage'
 import { Image } from 'expo-image'
 import { useNotification } from '../../../../context/NotificationContext'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import TopicTabs from '../../../../components/TopicTabs'
 import PostCard from '../../../../components/postCard'
 import PostModal from '../../../../components/postModal'
+import NewPost from './new-post'
 
 const Hives = () => {
   const [topics, setTopics] = useState([])
@@ -24,9 +25,11 @@ const Hives = () => {
   const [selectedTopicId, setSelectedTopicId] = useState(null)
   const { user } = useAuth()
   const router = useRouter()
+  const { draftBody, openComposer, topicId: draftTopicId } = useLocalSearchParams()
   const [selectedPost, setSelectedPost] = useState(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [newPostVisible, setNewPostVisible] = useState(false)
   const { notificationCount, setNotificationCount } = useNotification()
 
   let iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
@@ -42,6 +45,15 @@ const Hives = () => {
 
     return () => { supabase.removeChannel(postChannel) }
   }, [])
+
+  // Chat hands off a draft + the sentiment-matched Hive — open the composer pre-filled.
+  useEffect(() => {
+    if (openComposer === '1') {
+      if (draftTopicId) setSelectedTopicId(draftTopicId)
+      setNewPostVisible(true)
+    }
+  }, [openComposer])
+
 
   const fetchTopics = async () => {
     const { data, error } = await supabase
@@ -142,6 +154,15 @@ const Hives = () => {
             )}
           </View>
           {modalVisible && <PostModal post={selectedPost} visible={modalVisible} onClose={() => setModalVisible(false)} />}
+          {newPostVisible && (
+            <NewPost
+              isVisible={newPostVisible}
+              user={user}
+              topicId={selectedTopicId}
+              initialBody={draftBody}
+              onClose={() => setNewPostVisible(false)}
+            />
+          )}
         </View>
       )}
     </ScreenWrapper>
