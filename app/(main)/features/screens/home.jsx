@@ -17,7 +17,7 @@ import { getUserImage } from '../../../../services/userProfileImage'
 import { getAIReply } from '../../../../services/promptChatService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
 import { canPostContent } from '../../../../services/moderationService'
-import { findOrCreateHiveForMood, createHive } from '../../../../services/postService'
+import { fetchGlobalTopics, findOrCreateHiveForMood, matchHiveByTitle, createHive } from '../../../../services/postService'
 import { detectMood } from '../../../../services/sentimentService'
 
 const OPENING_PROMPT = 'What feels alive today?'
@@ -45,13 +45,20 @@ const Home = () => {
   const SHARE_INTENT = /\b(post|share|publish)\b/i
   const PRIVATE_INTENT = /\b(private|journal)\b/i
 
-  const goToDecideStage = async (draftSoFar) => {
+  const goToDecideStage = async (draftSoFar, requestedHiveTitle = null) => {
     setStage('decide')
     const detectedMood = detectMood(draftSoFar)
     setMood(detectedMood)
 
-    const hiveRes = await findOrCreateHiveForMood(detectedMood)
-    const hive = hiveRes.success ? { ...hiveRes.data, isNew: hiveRes.isNew } : null
+    let hive = null
+    if (requestedHiveTitle) {
+      const topicsRes = await fetchGlobalTopics()
+      const requestedHive = topicsRes.success ? matchHiveByTitle(topicsRes.data, requestedHiveTitle) : null
+      hive = requestedHive || { title: requestedHiveTitle, isNew: true }
+    } else {
+      const hiveRes = await findOrCreateHiveForMood(detectedMood)
+      hive = hiveRes.success ? { ...hiveRes.data, isNew: hiveRes.isNew } : null
+    }
     setMatchedHive(hive)
     return hive
   }
@@ -62,6 +69,8 @@ const Home = () => {
 
     const wantsToShare = SHARE_INTENT.test(text)
     const wantsPrivate = !wantsToShare && PRIVATE_INTENT.test(text)
+    const requestedHiveMatch = text.match(/\b(?:to|in)\s+(?:the\s+)?(.+?)\s+hive\b/i)
+    const requestedHiveTitle = wantsToShare ? requestedHiveMatch?.[1]?.trim() : null
 
     // Intent messages are just instructions to the app, not part of the draft being posted/journaled.
     const userMsg = { id: Date.now().toString(), role: 'user', content: text, isControl: wantsToShare || wantsPrivate }
@@ -71,7 +80,7 @@ const Home = () => {
 
     if (wantsToShare || wantsPrivate) {
       const draftSoFar = messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
-      const hive = await goToDecideStage(draftSoFar)
+      const hive = await goToDecideStage(draftSoFar, requestedHiveTitle)
       const hiveName = hive?.title || 'Hive'
 
       const ackMsg = {

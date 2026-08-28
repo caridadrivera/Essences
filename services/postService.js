@@ -22,6 +22,14 @@ export const matchHiveToMood = (topics, mood) => {
     return topics.find(t => t.title?.toLowerCase().includes(mood)) || null
 }
 
+export const matchHiveByTitle = (topics, requestedTitle) => {
+    const requested = requestedTitle?.trim().toLowerCase()
+    if (!requested || !topics?.length) return null
+    return topics.find(t => t.title?.trim().toLowerCase() === requested)
+        || topics.find(t => t.title?.toLowerCase().includes(requested))
+        || null
+}
+
 // Finds a fitting existing Hive for the mood, or proposes a new one (not yet created) if nothing fits.
 export const findOrCreateHiveForMood = async (mood) => {
     const topicsRes = await fetchGlobalTopics()

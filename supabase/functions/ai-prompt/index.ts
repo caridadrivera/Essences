@@ -12,6 +12,29 @@ Your role is to help users reflect on their thoughts and feelings through gentle
 - Never give advice or diagnose feelings. Just reflect and ask.
 - Tone: calm, unhurried, like a quiet conversation over coffee.`;
 
+const fetchGlobalHives = async () => {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+  if (!supabaseUrl || !supabaseKey) return [];
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/topics?select=id,title&user_id=is.null&order=title.asc`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+      },
+    );
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    console.error('Hive lookup error:', error);
+    return [];
+  }
+};
+
 serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -42,6 +65,11 @@ serve(async (request) => {
       });
     }
 
+    const hives = await fetchGlobalHives();
+    const hiveContext = hives.length
+      ? `\n\nCurrent global Hives (use these exact titles when discussing where a conversation might fit):\n${hives.map((hive) => `- ${hive.title}`).join('\n')}\n- Recommend an existing Hive only when it genuinely fits. Never invent a title when one of these fits.`
+      : '';
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -51,7 +79,7 @@ serve(async (request) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: SYSTEM_PROMPT + hiveContext },
           ...messages,
         ],
         max_tokens: 150,
