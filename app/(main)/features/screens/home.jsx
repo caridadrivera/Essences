@@ -17,7 +17,7 @@ import { getUserImage } from '../../../../services/userProfileImage'
 import { getAIReply } from '../../../../services/promptChatService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
 import { canPostContent } from '../../../../services/moderationService'
-import { fetchGlobalTopics, matchHiveToMood } from '../../../../services/postService'
+import { findOrCreateHiveForMood, createHive } from '../../../../services/postService'
 import { detectMood } from '../../../../services/sentimentService'
 
 const OPENING_PROMPT = 'What feels alive today?'
@@ -41,14 +41,52 @@ const Home = () => {
 
   const iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
+  // User can directly say they want to post/share or keep it private instead of waiting for the AI to offer.
+  const SHARE_INTENT = /\b(post|share|publish)\b/i
+  const PRIVATE_INTENT = /\b(private|journal)\b/i
+
+  const goToDecideStage = async (draftSoFar) => {
+    setStage('decide')
+    const detectedMood = detectMood(draftSoFar)
+    setMood(detectedMood)
+
+    const hiveRes = await findOrCreateHiveForMood(detectedMood)
+    const hive = hiveRes.success ? { ...hiveRes.data, isNew: hiveRes.isNew } : null
+    setMatchedHive(hive)
+    return hive
+  }
+
   const sendMessage = async () => {
     const text = inputText.trim()
     if (!text || aiThinking) return
 
-    const userMsg = { id: Date.now().toString(), role: 'user', content: text }
+    const wantsToShare = SHARE_INTENT.test(text)
+    const wantsPrivate = !wantsToShare && PRIVATE_INTENT.test(text)
+
+    // Intent messages are just instructions to the app, not part of the draft being posted/journaled.
+    const userMsg = { id: Date.now().toString(), role: 'user', content: text, isControl: wantsToShare || wantsPrivate }
     const next = [...messages, userMsg]
     setMessages(next)
     setInputText('')
+
+    if (wantsToShare || wantsPrivate) {
+      const draftSoFar = messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
+      const hive = await goToDecideStage(draftSoFar)
+      const hiveName = hive?.title || 'Hive'
+
+      const ackMsg = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: wantsToShare
+          ? hive?.isNew
+            ? `Sure — this feels like it deserves its own space. I can start a new ${hiveName} Hive for it — want to share it there, or keep it private instead?`
+            : `Sure — a post about this conversation would actually be fitting in the ${hiveName} Hive. Want to share it there, or keep it private instead?`
+          : `Got it — want to keep this in your journal, or share it in the ${hiveName} Hive?`
+      }
+      setMessages(prev => [...prev, ackMsg])
+      return
+    }
+
     setAiThinking(true)
 
     const history = next.map(m => ({ role: m.role, content: m.content }))
@@ -67,32 +105,32 @@ const Home = () => {
     if (res.success) {
       const lower = res.reply.toLowerCase()
       if (lower.includes('share') && (lower.includes('hive') || lower.includes('others') || lower.includes('public') || lower.includes('yourself'))) {
-        setStage('decide')
-
-        const draftSoFar = next.filter(m => m.role === 'user').map(m => m.content).join('\n\n')
-        const detectedMood = detectMood(draftSoFar)
-        setMood(detectedMood)
-
-        const topicsRes = await fetchGlobalTopics()
-        if (topicsRes.success) {
-          setMatchedHive(matchHiveToMood(topicsRes.data, detectedMood))
-        }
+        const draftSoFar = next.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
+        await goToDecideStage(draftSoFar)
       }
     }
   }
 
-  // Combine all user turns as the draft body
-  const userDraft = messages.filter(m => m.role === 'user').map(m => m.content).join('\n\n')
+  // Combine all non-control user turns as the draft body
+  const userDraft = messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
 
   const handleShareToHive = async () => {
     if (!userDraft || posting) return
     setPosting(true)
     const mod = await canPostContent(userDraft)
+    if (!mod.canPost) { setPosting(false); alert(mod.message); return }
+
+    // The matched Hive may only be a proposed name so far — create it for real now that the user is committing.
+    let hive = matchedHive
+    if (hive?.isNew) {
+      const created = await createHive(hive.title)
+      if (created.success) hive = created.data
+    }
     setPosting(false)
-    if (!mod.canPost) { alert(mod.message); return }
+
     router.push({
       pathname: '/features/screens/hives',
-      params: { draftBody: userDraft, openComposer: '1', topicId: matchedHive?.id, topicTitle: matchedHive?.title }
+      params: { draftBody: userDraft, openComposer: '1', topicId: hive?.id, topicTitle: hive?.title }
     })
   }
 

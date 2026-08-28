@@ -1,7 +1,9 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { supabase } from '../lib/supabase';
 
 const SUPABASE_URL = Constants.expoConfig.extra.SUPABASE_URL;
+const SUPABASE_ANON_KEY = Constants.expoConfig.extra.SUPABASE_ANON_KEY;
 
 /**
  * Moderate content using OpenAI's Moderation API via Supabase Edge Function
@@ -19,12 +21,16 @@ export const moderateContent = async (text) => {
       };
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || SUPABASE_ANON_KEY;
+
     const response = await axios.post(
       `${SUPABASE_URL}/functions/v1/moderate-content`,
       { text },
       {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         timeout: 10000,
       }

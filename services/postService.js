@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase"
 import { createNotification } from './notificationService'
+import { suggestHiveTitle } from './sentimentService'
 
 export const fetchGlobalTopics = async () => {
     try {
@@ -15,17 +16,51 @@ export const fetchGlobalTopics = async () => {
     }
 }
 
-// Picks the Hive whose title best matches the mood keyword; falls back to the first Hive.
-// [ASSUMPTION] Hive titles contain mood-related words (e.g. "Gratitude", "Calm") - not confirmed with product.
+// Finds the Hive whose title contains the mood keyword, or null if none match.
 export const matchHiveToMood = (topics, mood) => {
     if (!topics?.length) return null
-    const byMood = topics.find(t => t.title?.toLowerCase().includes(mood))
-    return byMood || topics[0]
+    return topics.find(t => t.title?.toLowerCase().includes(mood)) || null
+}
+
+// Finds a fitting existing Hive for the mood, or proposes a new one (not yet created) if nothing fits.
+export const findOrCreateHiveForMood = async (mood) => {
+    const topicsRes = await fetchGlobalTopics()
+    if (!topicsRes.success) return { success: false, msg: topicsRes.msg }
+
+    const topics = topicsRes.data
+    const existing = matchHiveToMood(topics, mood)
+    if (existing) return { success: true, data: existing, isNew: false }
+
+    const suggestedTitle = suggestHiveTitle(mood)
+    const duplicate = topics.find(t => t.title?.toLowerCase() === suggestedTitle.toLowerCase())
+    if (duplicate) return { success: true, data: duplicate, isNew: false }
+
+    return { success: true, data: { title: suggestedTitle }, isNew: true }
+}
+
+// Actually creates the proposed Hive — only called once the user commits to sharing.
+export const createHive = async (title) => {
+    try {
+        const { data, error } = await supabase
+            .from('topics')
+            .insert({ title, user_id: null })
+            .select('id, title')
+            .single()
+
+        if (error) return { success: false, msg: 'Could not create a new Hive' }
+        return { success: true, data }
+    } catch (error) {
+        return { success: false, msg: 'Could not create a new Hive' }
+    }
 }
 
 export const createOrUpdatePost = async (post)=>{
 
     try{
+        if (!post?.userId || !post?.topicId) {
+            return { success: false, msg: 'Choose a Hive before posting' }
+        }
+
         const {data, error} = await supabase
                 .from('posts')
                 .upsert(post)
@@ -42,14 +77,16 @@ export const createOrUpdatePost = async (post)=>{
                 .single()
     
         if(error){
-            return {success: false, msg: 'could not create your post'}
+            console.error('Create post error:', error)
+            return {success: false, msg: error.message || 'Could not create your post'}
         }
     
     
         return {success: true, data: data}
     }
     catch(error){
-        return {success: false, msg: 'Could not create your post' }
+        console.error('Create post exception:', error)
+        return {success: false, msg: error.message || 'Could not create your post' }
     }
  
 

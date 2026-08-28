@@ -6,10 +6,12 @@ import { supabase } from '../../../lib/supabase';
 import { theme } from '../../../constants/theme';
 import Icon from '../../../assets/icons';
 import RichTextEditor from '../../../components/RichTextEditor';
+import PostCard from '../../../components/postCard';
 import { useRef } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { createOrUpdatePost } from '../../../services/postService';
 import { getUserData } from '../../../services/userService';
+import { canPostContent } from '../../../services/moderationService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
@@ -23,7 +25,6 @@ const PostsByTopic = () => {
   const bodyRef = useRef("")
   const editorRef = useRef("")
   const [loading, setLoading] = useState(false)
-  const [toxicityScore, setToxicityScore] = useState(null);
   const { user, setAuth } = useAuth();
   const [postModalVisible, setPostModalVisible] = useState(false);
 
@@ -51,30 +52,20 @@ const PostsByTopic = () => {
     }
 
     try {
-      const score = await analyzeText(bodyRef.current);
+      const moderationCheck = await canPostContent(bodyRef.current);
 
-      setToxicityScore(score);
-
-      if (score > 0.7) {
-        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
-        const data = {
-          body: bodyRef.current,
-          userId: user?.id,
-          topicId: topicId,
-          isToxic: true
-        }
-        processPost(data)
-
-      } else {
-        const data = {
-          body: bodyRef.current,
-          userId: user?.id,
-          topicId: topicId,
-          isToxic: false
-        }
-        processPost(data);
-        setBottomSheetType(null);
+      if (!moderationCheck.canPost) {
+        Alert.alert('Content Policy', moderationCheck.message)
+        return
       }
+
+      const data = {
+        body: bodyRef.current,
+        userId: user?.id,
+        topicId: topicId,
+      }
+      await processPost(data);
+      setBottomSheetType(null);
 
     } catch (error) {
       Alert.alert('Error', 'Unable to analyze the content.');

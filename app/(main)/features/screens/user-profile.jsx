@@ -15,6 +15,7 @@ import { getUserData } from '../../../../services/userService'
 import { useAuth } from '../../../../context/AuthContext'
 import RichTextEditor from '../../../../components/RichTextEditor'
 import { createOrUpdatePost } from '../../../../services/postService'
+import { canPostContent } from '../../../../services/moderationService'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import TopicTabs from '../../../../components/TopicTabs'
 
@@ -40,7 +41,6 @@ const userProfile = () => {
   const bodyRef = useRef("")
   const editorRef = useRef("")
   const [loading, setLoading] = useState(false)
-  const [toxicityScore, setToxicityScore] = useState(null);
 
 
 
@@ -268,22 +268,20 @@ const userProfile = () => {
     }
 
     try {
-      const score = await analyzeText(bodyRef.current);
-      setToxicityScore(score);
+      const moderationCheck = await canPostContent(bodyRef.current);
+
+      if (!moderationCheck.canPost) {
+        Alert.alert('Content Policy', moderationCheck.message)
+        return
+      }
 
       const data = {
         body: bodyRef.current,
         userId: user?.id,
         topicId: selectedTopic, // ✅ use correct ID
-        isToxic: score > 0.7
       };
 
-      if (score > 0.7) {
-        Alert.alert('Warning', 'The content is considered toxic. It may be taken down');
-      } else {
-        setBottomSheetType(null);
-      }
-
+      setBottomSheetType(null);
       await processPost(data); // ✅ ensure errors bubble up
 
     } catch (error) {

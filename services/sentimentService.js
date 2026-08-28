@@ -17,3 +17,13 @@ export const detectMood = (text) => {
   }
   return best.mood
 }
+
+// Suggested Hive name for a mood when no existing Hive fits — used to propose a new Hive.
+const MOOD_HIVE_NAMES = {
+  grateful: 'Gratitude Circle',
+  hopeful: 'New Beginnings',
+  heavy: 'Weathering Hard Days',
+  calm: 'Quiet Moments',
+}
+
+export const suggestHiveTitle = (mood) => MOOD_HIVE_NAMES[mood] || 'Reflections'
