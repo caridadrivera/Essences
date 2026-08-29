@@ -20,6 +20,7 @@ import MoreHorizontalIcon from './MoreHorizontalIcon'
 import CommentIcon from './CommentIcon'
 import RepostIcon from './RepostIcon'
 import HexResonate from './HexResonate'
+import NotificationBell from './NotificationBell'
 
 const icons = {
     home: HomeIcon, 
@@ -41,6 +42,7 @@ const icons = {
     commentIcon: CommentIcon,
     repostIcon: RepostIcon,
     hexResonate: HexResonate,
+    notificationBell: NotificationBell,
 }
 const Icon = ({name, ...props}) => {
     const IconComponent = icons[name]

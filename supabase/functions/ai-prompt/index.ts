@@ -48,7 +48,7 @@ serve(async (request) => {
   }
 
   try {
-    const { messages } = await request.json();
+    const { messages, writingMode = false } = await request.json();
 
     if (!Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'messages array required' }), {
@@ -69,6 +69,9 @@ serve(async (request) => {
     const hiveContext = hives.length
       ? `\n\nCurrent global Hives (use these exact titles when discussing where a conversation might fit):\n${hives.map((hive) => `- ${hive.title}`).join('\n')}\n- Recommend an existing Hive only when it genuinely fits. Never invent a title when one of these fits.`
       : '';
+    const writingContext = writingMode
+      ? '\n\nThe user asked for help writing about a topic. Write one polished, authentic first-person draft they could post or paste elsewhere. Return only the draft text, with no preface, analysis, Hive recommendation, or quotation marks. Keep it concise and preserve the user\'s emotional meaning.'
+      : '';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -79,7 +82,7 @@ serve(async (request) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT + hiveContext },
+          { role: 'system', content: SYSTEM_PROMPT + hiveContext + writingContext },
           ...messages,
         ],
         max_tokens: 150,

@@ -3,8 +3,9 @@ import {
   Keyboard, ActivityIndicator
 } from 'react-native'
 import React, { useState, useRef, useEffect } from 'react'
-import RichTextEditor from '../../../../components/RichTextEditor'
 import { Alert } from 'react-native'
+import { useRouter } from 'expo-router'
+import RichTextEditor from '../../../../components/RichTextEditor'
 import { createOrUpdatePost } from '../../../../services/postService'
 import { canPostContent } from '../../../../services/moderationService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
@@ -15,6 +16,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 // phase: 'composing' → 'analyzing' → 'suggesting' → (done/closed)
 const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
 
+  const router = useRouter()
   const bodyRef = useRef(initialBody || "")
   const editorRef = useRef("")
   const [phase, setPhase] = useState('composing')
@@ -92,6 +94,7 @@ const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
       bodyRef.current = ''
       editorRef.current?.setContentHTML('')
       onClose()
+      router.push('/features/screens/journal-today')
     } else {
       Alert.alert('Journal', response.msg)
     }

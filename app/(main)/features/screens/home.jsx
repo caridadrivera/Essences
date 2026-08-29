@@ -2,7 +2,7 @@ import {
   StyleSheet, Text, View, TextInput, Pressable, TouchableOpacity,
   FlatList, KeyboardAvoidingView, Platform, ActivityIndicator
 } from 'react-native'
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { theme } from '../../../../constants/theme'
 import { hp, wp } from '../../../../helpers/common'
@@ -11,7 +11,7 @@ import { useAuth } from '../../../../context/AuthContext'
 import { Image } from 'expo-image'
 import Avatar from '../../../../components/Avatar'
 import Icon from '../../../../assets/icons'
-import LogOutButton from '../../../../components/LogOutButton'
+import HeaderOverflowMenu from '../../../../components/HeaderOverflowMenu'
 import { useNotification } from '../../../../context/NotificationContext'
 import { getUserImage } from '../../../../services/userProfileImage'
 import { getAIReply } from '../../../../services/promptChatService'
@@ -20,7 +20,24 @@ import { canPostContent } from '../../../../services/moderationService'
 import { fetchGlobalTopics, findOrCreateHiveForMood, matchHiveByTitle, createHive } from '../../../../services/postService'
 import { detectMood } from '../../../../services/sentimentService'
 
-const OPENING_PROMPT = 'What feels alive today?'
+const OPENING_PROMPTS = [
+  'What feels alive today?',
+  "What's been on your mind lately?",
+  'What has your attention right now?',
+  'What is your heart carrying today?',
+  'Where do you feel pulled today?',
+  'What would feel good to put into words?',
+]
+
+let lastOpeningPrompt = null
+let savedChatSession = null
+
+const getOpeningPrompt = (currentPrompt) => {
+  const choices = OPENING_PROMPTS.filter(prompt => prompt !== currentPrompt && prompt !== lastOpeningPrompt)
+  const prompt = choices[Math.floor(Math.random() * choices.length)] || OPENING_PROMPTS[0]
+  lastOpeningPrompt = prompt
+  return prompt
+}
 
 
 const Home = () => {
@@ -28,9 +45,9 @@ const Home = () => {
   const { user } = useAuth()
   const { notificationCount, setNotificationCount } = useNotification()
   const flatListRef = useRef(null)
-  const [messages, setMessages] = useState([
-    { id: '0', role: 'assistant', content: OPENING_PROMPT }
-  ])
+  const [messages, setMessages] = useState(() => savedChatSession?.userId === user?.id
+    ? savedChatSession.messages
+    : [{ id: '0', role: 'assistant', content: OPENING_PROMPTS[0] }])
   const [inputText, setInputText] = useState('')
   const [aiThinking, setAiThinking] = useState(false)
   // 'chat' | 'decide' — decide appears once the AI offers the post/journal choice
@@ -38,12 +55,39 @@ const Home = () => {
   const [posting, setPosting] = useState(false)
   const [mood, setMood] = useState('calm')
   const [matchedHive, setMatchedHive] = useState(null)
+  const [generatedDraft, setGeneratedDraft] = useState('')
+  const hydratedUserId = useRef(null)
+
+  useEffect(() => {
+    if (!user?.id) return
+    if (savedChatSession?.userId === user.id) {
+      setMessages(savedChatSession.messages)
+      setStage(savedChatSession.stage)
+      setMood(savedChatSession.mood)
+      setMatchedHive(savedChatSession.matchedHive)
+      setGeneratedDraft(savedChatSession.generatedDraft)
+    } else {
+      setMessages([{ id: '0', role: 'assistant', content: getOpeningPrompt() }])
+      setStage('chat')
+      setInputText('')
+      setMood('calm')
+      setMatchedHive(null)
+      setGeneratedDraft('')
+    }
+    hydratedUserId.current = user.id
+  }, [user?.id])
+
+  useEffect(() => {
+    if (hydratedUserId.current !== user?.id) return
+    savedChatSession = { userId: user.id, messages, stage, mood, matchedHive, generatedDraft }
+  }, [user?.id, messages, stage, mood, matchedHive, generatedDraft])
 
   const iconImg = getUserImage('Essences-2.png?t=2024-09-14T02%3A13%3A17.961Z')
 
   // User can directly say they want to post/share or keep it private instead of waiting for the AI to offer.
   const SHARE_INTENT = /\b(post|share|publish)\b/i
   const PRIVATE_INTENT = /\b(private|journal)\b/i
+  const WRITING_INTENT = /\b(help me write|write about|draft|compose)\b/i
 
   const goToDecideStage = async (draftSoFar, requestedHiveTitle = null) => {
     setStage('decide')
@@ -69,14 +113,37 @@ const Home = () => {
 
     const wantsToShare = SHARE_INTENT.test(text)
     const wantsPrivate = !wantsToShare && PRIVATE_INTENT.test(text)
+    const wantsWritingHelp = WRITING_INTENT.test(text)
     const requestedHiveMatch = text.match(/\b(?:to|in)\s+(?:the\s+)?(.+?)\s+hive\b/i)
     const requestedHiveTitle = wantsToShare ? requestedHiveMatch?.[1]?.trim() : null
 
     // Intent messages are just instructions to the app, not part of the draft being posted/journaled.
-    const userMsg = { id: Date.now().toString(), role: 'user', content: text, isControl: wantsToShare || wantsPrivate }
+    const userMsg = { id: Date.now().toString(), role: 'user', content: text, isControl: wantsToShare || wantsPrivate || wantsWritingHelp }
     const next = [...messages, userMsg]
     setMessages(next)
     setInputText('')
+
+    if (wantsWritingHelp) {
+      setAiThinking(true)
+      const history = next.map(m => ({ role: m.role, content: m.content }))
+      const res = await getAIReply(history, { writingMode: true })
+      setAiThinking(false)
+
+      if (!res.success) {
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: "I'm having trouble creating a draft right now — try again in a moment."
+        }])
+        return
+      }
+
+      setGeneratedDraft(res.reply)
+      const draftForMatching = `${messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')}\n${res.reply}`.trim()
+      const hive = await goToDecideStage(draftForMatching)
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: res.reply }])
+      return
+    }
 
     if (wantsToShare || wantsPrivate) {
       const draftSoFar = messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
@@ -121,7 +188,7 @@ const Home = () => {
   }
 
   // Combine all non-control user turns as the draft body
-  const userDraft = messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
+  const userDraft = generatedDraft || messages.filter(m => m.role === 'user' && !m.isControl).map(m => m.content).join('\n\n')
 
   const handleShareToHive = async () => {
     if (!userDraft || posting) return
@@ -146,23 +213,34 @@ const Home = () => {
   const handleKeepPrivate = async () => {
     if (!userDraft || posting) return
     setPosting(true)
-    await createOrUpdateJournalEntry({ userId: user.id, body: userDraft, feeling: mood })
+    const response = await createOrUpdateJournalEntry({ userId: user.id, body: userDraft, feeling: mood })
     setPosting(false)
-    router.push('/features/screens/journal-today')
+    if (!response.success) {
+      alert(response.msg)
+      return
+    }
+    router.replace('/features/screens/journal-today')
   }
 
   const resetChat = () => {
-    setMessages([{ id: '0', role: 'assistant', content: OPENING_PROMPT }])
+    setMessages([{ id: '0', role: 'assistant', content: getOpeningPrompt(messages[0]?.content) }])
     setStage('chat')
     setInputText('')
     setMood('calm')
     setMatchedHive(null)
+    setGeneratedDraft('')
   }
 
   return (
     <ScreenWrapper bg={theme.colors.surfaceBase}>
       <View style={styles.header}>
-        <Image source={iconImg} style={{ height: 80, width: '42%' }} />
+        <View style={styles.brandBlock}>
+          {/* <Image source={iconImg} style={styles.brandMark} /> */}
+          <View>
+            <Text style={styles.brandKicker}>ESSENCES</Text>
+            <Text style={styles.brandTitle}>A place to land</Text>
+          </View>
+        </View>
         <View style={styles.icons}>
           <Pressable style={styles.avatarBtn} onPress={() => router.push({
             pathname: '/features/screens/user-profile',
@@ -170,16 +248,16 @@ const Home = () => {
           })}>
             <Avatar uri={user?.profile_image} size={hp(4.3)} rounded={theme.designRadius.full} style={{ borderWidth: 2, borderColor: theme.colors.hairline }} />
           </Pressable>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => { setNotificationCount(0); router.push('/features/screens/notifications') }}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/features/screens/hives')}>
             <Icon name="hexResonate" size={22} active={true} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/features/screens/notifications')}>
+            <Icon name="notificationBell" size={22} color={notificationCount > 0 ? theme.colors.dangerWarm : theme.colors.inkSecondary} />
             {notificationCount > 0 && (
               <View style={styles.badge}><Text style={styles.badgeText}>{notificationCount}</Text></View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/features/screens/hives')}>
-            <Icon name="home" size={22} color={theme.colors.inkSecondary} />
-          </TouchableOpacity>
-          <LogOutButton />
+          <HeaderOverflowMenu />
         </View>
       </View>
 
@@ -191,8 +269,13 @@ const Home = () => {
           contentContainerStyle={styles.chatList}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           renderItem={({ item }) => (
-            <View style={[styles.bubble, item.role === 'assistant' ? styles.aiBubble : styles.userBubble]}>
-              <Text style={item.role === 'assistant' ? styles.aiText : styles.userText}>{item.content}</Text>
+            <View style={[
+              styles.bubble,
+              item.role === 'assistant' ? styles.aiBubble : styles.userBubble,
+              item.role === 'assistant' && item.id === messages[0]?.id && styles.openingBubble,
+            ]}>
+              {item.role === 'assistant' && item.id === messages[0]?.id && <Text style={styles.bubbleLabel}>YOUR REFLECTION</Text>}
+              <Text selectable={item.role === 'assistant'} style={item.role === 'assistant' ? styles.aiText : styles.userText}>{item.content}</Text>
             </View>
           )}
           ListFooterComponent={aiThinking ? (
@@ -204,6 +287,11 @@ const Home = () => {
 
         {stage === 'decide' && !aiThinking && (
           <View style={styles.decideRow}>
+            <View style={styles.decideHeading}>
+              <View style={styles.hiveDot} />
+              <Text style={styles.decideTitle}>Where should this reflection live?</Text>
+            </View>
+            {generatedDraft && <Text style={styles.copyHint}>Press and hold the draft above to copy it.</Text>}
             <Pressable style={[styles.decideBtn, styles.decidePrimary]} onPress={handleShareToHive} disabled={posting}>
               <Text style={styles.decidePrimaryText}>Share to {matchedHive?.title || 'a Hive'} →</Text>
             </Pressable>
@@ -242,8 +330,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: wp(4),
-    marginBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.hairline,
   },
+  brandBlock: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  brandMark: { height: 48, width: 66, resizeMode: 'contain' },
+  brandKicker: { color: theme.colors.rust, fontSize: 10, fontWeight: theme.fonts.bold, letterSpacing: 1.4 },
+  brandTitle: { color: theme.colors.inkPrimary, fontFamily: theme.fonts.display, fontSize: 14, marginTop: 1 },
   icons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   avatarBtn: { marginHorizontal: 4 },
   iconBtn: {
@@ -259,35 +354,44 @@ const styles = StyleSheet.create({
     borderRadius: 8, backgroundColor: theme.colors.dangerWarm,
   },
   badgeText: { color: '#fff', fontSize: hp(1.1), fontWeight: theme.fonts.bold },
-  chatList: { paddingHorizontal: wp(4), paddingVertical: 12, flexGrow: 1, justifyContent: 'flex-end' },
+  chatList: { paddingHorizontal: wp(5), paddingTop: 20, paddingBottom: 18, flexGrow: 1, justifyContent: 'flex-end' },
   bubble: {
-    maxWidth: '82%',
+    maxWidth: '86%',
     borderRadius: theme.designRadius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginVertical: 4,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    marginVertical: 5,
   },
-  aiBubble: { alignSelf: 'flex-start', backgroundColor: theme.colors.sage },
+  aiBubble: { alignSelf: 'flex-start', backgroundColor: theme.colors.sage, borderTopLeftRadius: 6 },
+  openingBubble: { paddingTop: 11, backgroundColor: '#D6DEB9' },
   userBubble: {
     alignSelf: 'flex-end',
     backgroundColor: theme.colors.surfaceRaised,
     borderWidth: 1,
     borderColor: theme.colors.hairline,
+    borderBottomRightRadius: 6,
   },
-  aiText: { fontSize: hp(1.9), color: '#3E4530', lineHeight: hp(2.7) },
+  bubbleLabel: { color: '#687049', fontSize: 10, fontWeight: theme.fonts.bold, letterSpacing: 1.1, marginBottom: 5 },
+  aiText: { fontSize: hp(1.9), color: '#3E4530', lineHeight: hp(2.8) },
   userText: { fontSize: hp(1.9), color: theme.colors.inkPrimary, lineHeight: hp(2.7) },
   decideRow: {
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: wp(5),
-    paddingVertical: 14,
+    paddingTop: 13,
+    paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: theme.colors.hairline,
+    backgroundColor: theme.colors.surfaceRaised,
   },
-  decideBtn: { width: '100%', paddingVertical: 13, borderRadius: theme.designRadius.full, alignItems: 'center' },
-  decidePrimary: { backgroundColor: theme.colors.rust },
+  decideHeading: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  hiveDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: theme.colors.hexYellow, borderWidth: 1, borderColor: theme.colors.rust },
+  decideTitle: { color: theme.colors.inkPrimary, fontFamily: theme.fonts.display, fontSize: 16 },
+  copyHint: { width: '100%', color: theme.colors.inkSecondary, fontSize: hp(1.5), textAlign: 'center', marginBottom: 2 },
+  decideBtn: { width: '100%', minHeight: 46, paddingVertical: 12, paddingHorizontal: 14, borderRadius: theme.designRadius.md, alignItems: 'center', justifyContent: 'center' },
+  decidePrimary: { backgroundColor: theme.colors.rust, borderWidth: 1, borderColor: theme.colors.rust },
   decidePrimaryText: { color: theme.colors.inkPrimary, fontWeight: theme.fonts.bold, fontSize: hp(1.8) },
-  decideSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.colors.inkSecondary },
+  decideSecondary: { backgroundColor: theme.colors.surfaceBase, borderWidth: 1, borderColor: theme.colors.hairline },
   decideSecondaryText: { color: theme.colors.inkPrimary, fontWeight: theme.fonts.bold, fontSize: hp(1.8) },
   resetText: { fontSize: hp(1.5), color: theme.colors.inkSecondary, marginTop: 4 },
   inputRow: {
@@ -295,7 +399,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 8,
     paddingHorizontal: wp(4),
-    paddingVertical: 10,
+    paddingTop: 10,
+    paddingBottom: 14,
     borderTopWidth: 1,
     borderTopColor: theme.colors.hairline,
     backgroundColor: theme.colors.surfaceBase,
@@ -308,6 +413,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.hairline,
     borderRadius: theme.designRadius.md,
+    minHeight: hp(5.8),
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: hp(1.9),

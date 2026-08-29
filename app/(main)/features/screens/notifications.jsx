@@ -8,16 +8,28 @@ import { theme } from '../../../../constants/theme'
 import NotificationItem from '../../../../components/NotificationItem'
 import { useRouter } from 'expo-router'
 import Icon from '../../../../assets/icons'
+import { supabase } from '../../../../lib/supabase'
+import { useNotification } from '../../../../context/NotificationContext'
 
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([])
   const { user } = useAuth()
   const router = useRouter()
+  const { setNotificationCount } = useNotification()
 
   useEffect(() => {
+    if (!user?.id) return
+    setNotificationCount(0)
     getNotifications()
-  }, [])
+
+    const notificationsChannel = supabase
+      .channel(`notifications-screen:${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, getNotifications)
+      .subscribe()
+
+    return () => supabase.removeChannel(notificationsChannel)
+  }, [user?.id])
 
   const getNotifications = async () => {
     let response = await fetchNotifications(user.id)

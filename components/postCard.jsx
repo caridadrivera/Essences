@@ -53,6 +53,7 @@ const PostCard = ({ item, setIsPostDeleted }) => {
 
   const liked = likes?.some(like => like.userId === user?.id);
   const isReposted = reposts?.some((r) => r.userId === user?.id);
+  const isOwnPost = item?.userId === user?.id || item?.users?.id === user?.id;
 
   const onLike = async () => {
     const previousLikes = [...likes];
@@ -71,7 +72,7 @@ const PostCard = ({ item, setIsPostDeleted }) => {
   };
 
   const onRepost = async () => {
-    if (!user?.id || !item?.id) return;
+    if (!user?.id || !item?.id || isOwnPost) return;
     const previousReposts = [...reposts];
     if (isReposted) {
       setReposts(reposts.filter((r) => r.userId !== user.id));
@@ -231,16 +232,18 @@ const PostCard = ({ item, setIsPostDeleted }) => {
               <Icon name="commentIcon" size={14} color="#777" />
               <Text style={styles.actionCount}>{commentCount || 0}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={onRepost} style={styles.actionBtn}>
-              <Icon
-                name="repostIcon"
-                size={14}
-                color={isReposted ? theme.colors.primaryDark : '#777'}
-              />
-              <Text style={[styles.actionCount, isReposted && { color: theme.colors.primaryDark }]}>
-                {reposts?.length || 0}
-              </Text>
-            </TouchableOpacity>
+            {!isOwnPost && (
+              <TouchableOpacity onPress={onRepost} style={styles.actionBtn}>
+                <Icon
+                  name="repostIcon"
+                  size={14}
+                  color={isReposted ? theme.colors.primaryDark : '#777'}
+                />
+                <Text style={[styles.actionCount, isReposted && { color: theme.colors.primaryDark }]}>
+                  {reposts?.length || 0}
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               onPress={onLike}
               style={styles.actionBtn}

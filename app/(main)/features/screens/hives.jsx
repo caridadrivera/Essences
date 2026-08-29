@@ -4,7 +4,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { supabase } from '../../../../lib/supabase'
 import { useAuth } from '../../../../context/AuthContext'
 import { theme } from '../../../../constants/theme'
-import LogOutButton from '../../../../components/LogOutButton'
+import HeaderOverflowMenu from '../../../../components/HeaderOverflowMenu'
 import { router } from 'expo-router'
 import { hp, wp } from '../../../../helpers/common'
 import Icon from '../../../../assets/icons'
@@ -72,14 +72,17 @@ const Hives = () => {
       .eq('user_id', user.id)
 
     const blockedIds = (blockedUsers || []).map(u => u.blocked_user_id)
-    const exclusionIds = [...blockedIds, user.id]
-
-    const { data, error } = await supabase
+    let postsQuery = supabase
       .from('posts')
       .select(`*, users(name, profile_image, background_image, id, bio), postLikes(*)`)
       .eq('topicId', topic.id)
-      .not('userId', 'in', `(${exclusionIds.join(',')})`)
       .order('created_at', { ascending: false })
+
+    if (blockedIds.length) {
+      postsQuery = postsQuery.not('userId', 'in', `(${blockedIds.join(',')})`)
+    }
+
+    const { data, error } = await postsQuery
 
     if (error) { console.error('Error fetching posts:', error); return [] }
     return data
@@ -110,16 +113,23 @@ const Hives = () => {
           })}>
             <Avatar uri={user?.profile_image} size={hp(4.3)} rounded={theme.designRadius.full} style={{ borderWidth: 2, borderColor: theme.colors.hairline }} />
           </Pressable>
-          <TouchableOpacity style={styles.relateButton} onPress={() => { setNotificationCount(0); router.push('/features/screens/notifications') }}>
-            <Icon name="hexResonate" size={22} active={true} />
+          <TouchableOpacity style={styles.relateButton} onPress={() => router.push('/features/screens/notifications')}>
+            <Icon name="notificationBell" size={22} color={notificationCount > 0 ? theme.colors.dangerWarm : theme.colors.inkSecondary} />
             {notificationCount > 0 && (
               <View style={styles.pill}><Text style={styles.pillText}>{notificationCount}</Text></View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.relateButton} onPress={() => router.replace('/features/screens/home')}>
+          <TouchableOpacity
+            style={styles.relateButton}
+            onPress={() => {
+              if (!selectedTopicId) return
+              setNewPostVisible(true)
+            }}
+            disabled={!selectedTopicId}
+          >
             <Icon name="editIcon" size={22} color={theme.colors.inkSecondary} />
           </TouchableOpacity>
-          <LogOutButton />
+          <HeaderOverflowMenu />
         </View>
       </View>
 

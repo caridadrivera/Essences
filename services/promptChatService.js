@@ -4,7 +4,7 @@ import { supabaseUrl } from '../lib/supabaseConfig';
 // Calls the ai-prompt Edge Function with the full conversation history.
 // messages: Array<{ role: 'user'|'assistant', content: string }>
 // Returns { success: boolean, reply?: string, msg?: string }
-export const getAIReply = async (messages) => {
+export const getAIReply = async (messages, options = {}) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -15,7 +15,7 @@ export const getAIReply = async (messages) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, writingMode: options.writingMode === true }),
     });
 
     if (!response.ok) {

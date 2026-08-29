@@ -10,13 +10,15 @@ export const createNotification = async (notification) => {
         .single()
 
         if(error){
-            return {success: false, msg: 'Error with notification'}
+          console.error('Create notification error:', error)
+          return {success: false, msg: error.message || 'Could not create notification'}
         }
   
         return {success: true, data: data}
     }
     catch(error) {
-        return {success: false, msg: 'Could not like the post'}
+      console.error('Create notification exception:', error)
+      return {success: false, msg: error.message || 'Could not create notification'}
     }
 
   }

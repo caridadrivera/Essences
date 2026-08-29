@@ -10,16 +10,33 @@ export const NotificationProvider = ({ children }) => {
 
 
   useEffect(() => {
-    if (user?.id) {
-      let notificationsChannel = supabase
-        .channel('notifications')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(notificationsChannel);
-      };
+    if (!user?.id) {
+      setNotificationCount(0)
+      return
     }
+
+    const loadUnreadCount = async () => {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiverId', user.id)
+
+      if (error) {
+        console.error('Load notification count error:', error)
+        return
+      }
+      setNotificationCount(count || 0)
+    }
+
+    loadUnreadCount()
+    const notificationsChannel = supabase
+      .channel(`notifications-badge:${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') console.error('Notification realtime channel failed')
+      })
+
+    return () => supabase.removeChannel(notificationsChannel)
   }, [user?.id]);
 
   const handleNotificationEvent = async (payload) => {

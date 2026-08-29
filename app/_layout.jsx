@@ -40,7 +40,7 @@ const MainLayout = () => {
         } else {
       
           setAuth(null)
-          setTimeout(()=> router.replace('/features/auth/sign-up'), 0)
+          setTimeout(()=> router.replace('/features/auth/login'), 0)
         }
       }catch(err){
         // fallback: listen for realtime auth changes
@@ -61,7 +61,7 @@ const MainLayout = () => {
         setTimeout(()=> router.replace('/features/screens/home'), 0)
       } else {
         setAuth(null)
-        setTimeout(()=> router.replace('/features/auth/sign-up'), 0)
+        setTimeout(()=> router.replace('/features/auth/login'), 0)
       }
     })
 
