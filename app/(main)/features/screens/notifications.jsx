@@ -25,8 +25,14 @@ const Notifications = () => {
 
     const notificationsChannel = supabase
       .channel(`notifications-screen:${user.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, getNotifications)
-      .subscribe()
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+        if (payload?.new?.receiverId === user.id) getNotifications()
+      })
+      .subscribe((status, error) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('Notification screen realtime channel failed:', error)
+        }
+      })
 
     return () => supabase.removeChannel(notificationsChannel)
   }, [user?.id])

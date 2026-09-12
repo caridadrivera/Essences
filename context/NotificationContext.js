@@ -31,19 +31,17 @@ export const NotificationProvider = ({ children }) => {
     loadUnreadCount()
     const notificationsChannel = supabase
       .channel(`notifications-badge:${user.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}` }, handleNotificationEvent)
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') console.error('Notification realtime channel failed')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+        if (payload?.new?.receiverId === user.id) loadUnreadCount()
+      })
+      .subscribe((status, error) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('Notification realtime channel failed:', error)
+        }
       })
 
     return () => supabase.removeChannel(notificationsChannel)
   }, [user?.id]);
-
-  const handleNotificationEvent = async (payload) => {
-    if (payload.eventType === 'INSERT' && payload.new.id) {
-      setNotificationCount(prev => prev + 1);
-    }
-  };
 
   return (
     <NotificationContext.Provider value={{ notificationCount, setNotificationCount }}>

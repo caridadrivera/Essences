@@ -115,7 +115,7 @@ jest.mock('../services/postService', () => ({
 
 jest.mock('../services/perspecticeService', () => ({
   analyzeText: jest.fn().mockResolvedValue(0.2)
-}))
+}), { virtual: true })
 
 jest.mock('../services/userProfileImage', () => ({
   getUserImage: jest.fn().mockReturnValue('https://example.com/img.jpg')
