@@ -17,7 +17,7 @@ import { getUserImage } from '../../../../services/userProfileImage'
 import { getAIReply } from '../../../../services/promptChatService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
 import { canPostContent } from '../../../../services/moderationService'
-import { fetchGlobalTopics, findOrCreateHiveForMood, matchHiveByTitle, createHive } from '../../../../services/postService'
+import { fetchGlobalTopics, matchHiveToMood, matchHiveByTitle } from '../../../../services/postService'
 import { detectMood } from '../../../../services/sentimentService'
 
 const OPENING_PROMPTS = [
@@ -97,13 +97,12 @@ const Home = () => {
     let hive = null
     if (requestedHiveTitle) {
       const topicsRes = await fetchGlobalTopics()
-      const requestedHive = topicsRes.success ? matchHiveByTitle(topicsRes.data, requestedHiveTitle) : null
-      hive = requestedHive || { title: requestedHiveTitle, isNew: true }
+      hive = topicsRes.success ? matchHiveByTitle(topicsRes.data, requestedHiveTitle) : null
     } else {
-      const hiveRes = await findOrCreateHiveForMood(detectedMood)
-      hive = hiveRes.success ? { ...hiveRes.data, isNew: hiveRes.isNew } : null
+      const topicsRes = await fetchGlobalTopics()
+      hive = topicsRes.success ? matchHiveToMood(topicsRes.data, detectedMood) : null
     }
-    setMatchedHive(hive)
+    setMatchedHive(hive ? { ...hive, isNew: false } : null)
     return hive
   }
 
@@ -154,9 +153,9 @@ const Home = () => {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: wantsToShare
-          ? hive?.isNew
-            ? `Sure — this feels like it deserves its own space. I can start a new ${hiveName} Hive for it — want to share it there, or keep it private instead?`
-            : `Sure — a post about this conversation would actually be fitting in the ${hiveName} Hive. Want to share it there, or keep it private instead?`
+          ? hive
+            ? `Based on the feeling in this conversation, the ${hiveName} Hive could be a good fit. Want to share it there, or keep it private instead?`
+            : `I couldn't find an existing Hive that clearly matches the feeling in this conversation. Want to choose one, or keep it private instead?`
           : `Got it — want to keep this in your journal, or share it in the ${hiveName} Hive?`
       }
       setMessages(prev => [...prev, ackMsg])
@@ -196,17 +195,11 @@ const Home = () => {
     const mod = await canPostContent(userDraft)
     if (!mod.canPost) { setPosting(false); alert(mod.message); return }
 
-    // The matched Hive may only be a proposed name so far — create it for real now that the user is committing.
-    let hive = matchedHive
-    if (hive?.isNew) {
-      const created = await createHive(hive.title)
-      if (created.success) hive = created.data
-    }
     setPosting(false)
 
     router.push({
       pathname: '/features/screens/hives',
-      params: { draftBody: userDraft, openComposer: '1', topicId: hive?.id, topicTitle: hive?.title }
+      params: { draftBody: userDraft, openComposer: '1', topicId: matchedHive?.id, topicTitle: matchedHive?.title }
     })
   }
 

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import Constants from 'expo-constants';
 import { supabase } from '../lib/supabase';
+import { supabaseUrl, supabaseAnonKey } from '../lib/supabaseConfig';
 
-const SUPABASE_URL = Constants.expoConfig.extra.SUPABASE_URL;
-const SUPABASE_ANON_KEY = Constants.expoConfig.extra.SUPABASE_ANON_KEY;
+const SUPABASE_URL = supabaseUrl;
+const SUPABASE_ANON_KEY = supabaseAnonKey;
 
 /**
  * Moderate content using OpenAI's Moderation API via Supabase Edge Function

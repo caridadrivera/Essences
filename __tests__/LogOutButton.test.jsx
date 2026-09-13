@@ -17,7 +17,8 @@ jest.mock('../context/AuthContext', () => ({
 
 const mockReplace = jest.fn()
 jest.mock('expo-router', () => ({
-  router: { replace: mockReplace }
+  router: { replace: mockReplace },
+  useRouter: () => ({ replace: mockReplace })
 }))
 
 describe('LogOutButton', () => {

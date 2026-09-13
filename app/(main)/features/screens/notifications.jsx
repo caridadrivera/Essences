@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { fetchNotifications } from '../../../../services/notificationService'
+import { fetchNotifications, markNotificationsAsRead } from '../../../../services/notificationService'
 import { useAuth } from '../../../../context/AuthContext'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { hp, wp } from '../../../../helpers/common'
@@ -20,8 +20,11 @@ const Notifications = () => {
 
   useEffect(() => {
     if (!user?.id) return
-    setNotificationCount(0)
     getNotifications()
+    markNotificationsAsRead(user.id).then((response) => {
+      if (response.success) setNotificationCount(0)
+      else console.error('Mark notifications as read error:', response.msg)
+    })
 
     const notificationsChannel = supabase
       .channel(`notifications-screen:${user.id}`)

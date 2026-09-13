@@ -49,6 +49,24 @@ export const createNotification = async (notification) => {
     }
 }
 
+export const markNotificationsAsRead = async (receiverId) => {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ isRead: true })
+      .eq('receiverId', receiverId)
+      .eq('isRead', false)
+
+    if (error) {
+      return { success: false, msg: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, msg: error?.message }
+  }
+}
+
 
 export const registerForPushNotificationsAsync = async () => {
   let token;

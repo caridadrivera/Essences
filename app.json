@@ -16,7 +16,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.caridadrivera.essences",
-      "simulator": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

@@ -20,6 +20,7 @@ export const NotificationProvider = ({ children }) => {
         .from('notifications')
         .select('id', { count: 'exact', head: true })
         .eq('receiverId', user.id)
+        .eq('isRead', false)
 
       if (error) {
         console.error('Load notification count error:', error)
@@ -32,15 +33,23 @@ export const NotificationProvider = ({ children }) => {
     const notificationsChannel = supabase
       .channel(`notifications-badge:${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
-        if (payload?.new?.receiverId === user.id) loadUnreadCount()
+        if (payload?.new?.receiverId === user.id) {
+          setNotificationCount((currentCount) => currentCount + 1)
+        }
       })
       .subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') loadUnreadCount()
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('Notification realtime channel failed:', error)
         }
       })
 
-    return () => supabase.removeChannel(notificationsChannel)
+    const unreadCountRefresh = setInterval(loadUnreadCount, 15000)
+
+    return () => {
+      clearInterval(unreadCountRefresh)
+      supabase.removeChannel(notificationsChannel)
+    }
   }, [user?.id]);
 
   return (

@@ -18,7 +18,11 @@ export const fetchGlobalTopics = async () => {
 // Finds the Hive whose title contains the mood keyword, or null if none match.
 export const matchHiveToMood = (topics, mood) => {
     if (!topics?.length) return null
-    return topics.find(t => t.title?.toLowerCase().includes(mood)) || null
+    const normalizedMood = mood?.toLowerCase()
+    const suggestedTitle = suggestHiveTitle(normalizedMood)?.toLowerCase()
+    return topics.find(t => t.title?.toLowerCase().includes(normalizedMood))
+        || topics.find(t => t.title?.toLowerCase() === suggestedTitle)
+        || null
 }
 
 export const matchHiveByTitle = (topics, requestedTitle) => {
