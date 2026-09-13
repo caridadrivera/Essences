@@ -1,6 +1,6 @@
 import {
   StyleSheet, Text, View, Modal, TouchableOpacity, TouchableWithoutFeedback,
-  Keyboard, ActivityIndicator
+  Keyboard, ActivityIndicator, Pressable
 } from 'react-native'
 import React, { useState, useRef, useEffect } from 'react'
 import { Alert } from 'react-native'
@@ -11,7 +11,8 @@ import { canPostContent } from '../../../../services/moderationService'
 import { createOrUpdateJournalEntry } from '../../../../services/journalService'
 import { analyzeEntry, fetchHivesForDisplay, sentimentToFeeling } from '../../../../services/sentimentAnalysis'
 import PostDestinationPrompt from '../../../../components/PostDestinationPrompt'
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { theme } from '../../../../constants/theme'
 
 // phase: 'composing' → 'analyzing' → 'suggesting' → (done/closed)
 const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
@@ -113,43 +114,58 @@ const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
 
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.scrollContainer}
-      enableOnAndroid={true}
-      extraScrollHeight={200}
-      keyboardShouldPersistTaps="handled"
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isVisible}
-          onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.scrollContainer}
+            enableOnAndroid={true}
+            extraScrollHeight={100}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Pressable style={styles.modalView} onPress={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <View style={styles.headerRow}>
+                <Text style={styles.headerTitle}>
+                  {phase === 'suggesting' ? 'Choose Destination' : 'New Reflection'}
+                </Text>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeBtn}
+                  disabled={phase === 'analyzing'}
+                >
+                  <Text style={styles.closeBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
 
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
               {/* ── Composing phase: rich text editor ── */}
               {(phase === 'composing' || phase === 'analyzing') && (
                 <>
                   <RichTextEditor editorRef={editorRef} onChange={body => bodyRef.current = body} />
-                  <View style={styles.media}>
+                  <View style={styles.actionRow}>
                     <TouchableOpacity
-                      style={[styles.button, styles.buttonClose]}
+                      style={[styles.btn, styles.btnSecondary]}
                       onPress={onClose}
                       disabled={phase === 'analyzing'}
                     >
-                      <Text style={styles.textStyle}>Close</Text>
+                      <Text style={styles.btnSecondaryText}>Cancel</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.button, styles.buttonClose]}
+                      style={[styles.btn, styles.btnPrimary]}
                       onPress={onSubmit}
                       disabled={phase === 'analyzing'}
                     >
-                      {phase === 'analyzing'
-                        ? <ActivityIndicator color="#fff" size="small" />
-                        : <Text style={styles.textStyle}>Post</Text>
-                      }
+                      {phase === 'analyzing' ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={styles.btnPrimaryText}>Continue →</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 </>
@@ -165,68 +181,103 @@ const NewPost = ({ isVisible, user, topicId, initialBody, onClose }) => {
                     onKeepInJournal={handleKeepInJournal}
                   />
                   <TouchableOpacity
-                    style={[styles.button, styles.buttonClose, { marginTop: 12, alignSelf: 'center' }]}
+                    style={[styles.btn, styles.btnSecondary, { marginTop: 14, alignSelf: 'center', width: '100%' }]}
                     onPress={() => setPhase('composing')}
                   >
-                    <Text style={styles.textStyle}>← Edit</Text>
+                    <Text style={styles.btnSecondaryText}>← Edit reflection</Text>
                   </TouchableOpacity>
                 </>
               )}
-            </View>
-          </View>
-
-        </Modal>
+            </Pressable>
+          </KeyboardAwareScrollView>
+        </View>
       </TouchableWithoutFeedback>
-    </KeyboardAwareScrollView>
-
+    </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  centeredView: {
+  overlay: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
+    backgroundColor: 'rgba(36, 23, 19, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
+    width: '100%',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderTopLeftRadius: theme.designRadius.lg,
+    borderTopRightRadius: theme.designRadius.lg,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 28,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  cardContentStyle: {
-    backgroundColor: 'lightgrey',
-    borderRadius: 10,
-    padding: 10
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2
-  },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
-  },
-  media: {
+  headerRow: {
     flexDirection: 'row',
-    columnGap: 4,
-    marginTop: 8
-  }
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontFamily: theme.fonts.display,
+    fontSize: 18,
+    color: theme.colors.inkPrimary,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.surfaceBase,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+  },
+  closeBtnText: {
+    color: theme.colors.inkSecondary,
+    fontSize: 14,
+    fontWeight: theme.fonts.bold,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  btn: {
+    flex: 1,
+    height: 46,
+    borderRadius: theme.designRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnPrimary: {
+    backgroundColor: theme.colors.rust,
+  },
+  btnPrimaryText: {
+    color: '#fff',
+    fontWeight: theme.fonts.bold,
+    fontSize: 15,
+  },
+  btnSecondary: {
+    backgroundColor: theme.colors.surfaceBase,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+  },
+  btnSecondaryText: {
+    color: theme.colors.inkPrimary,
+    fontWeight: theme.fonts.bold,
+    fontSize: 15,
+  },
 });
 
 

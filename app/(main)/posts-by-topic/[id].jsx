@@ -252,14 +252,16 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(36, 23, 19, 0.45)',
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surfaceRaised,
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: theme.designRadius.lg,
+    borderTopRightRadius: theme.designRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
   },
   menuItem: {
     paddingVertical: 16,
@@ -267,19 +269,22 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 16,
+    color: theme.colors.inkPrimary,
   },
   button: {
-    borderRadius: 10,
-    padding: 5,
-    elevation: 2,
-    margin: 5,
+    borderRadius: theme.designRadius.md,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
   },
   buttonClose: {
-    backgroundColor: "#2196F3",
+    backgroundColor: theme.colors.rust,
   },
   textStyle: {
     color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
+    fontWeight: theme.fonts.bold,
+    textAlign: "center",
+    fontSize: 15,
   },
 });

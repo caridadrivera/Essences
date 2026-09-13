@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 28,
-    fontWeight: 'bolder',
+    fontWeight: 'bold',
     color: 'blue',
   },
   overlay: {
