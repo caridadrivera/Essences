@@ -1,20 +1,41 @@
 import { serve } from 'https://deno.land/std@0.182.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.js';
 
-// Forces Claude to return valid JSON only — no prose, no markdown fences.
-const ANALYSIS_SYSTEM_PROMPT = `You are an emotional-intelligence classifier. Read the user text and return ONLY valid JSON — no markdown, no code fences, no explanation — matching this exact schema:
-{
-  "themes": ["string"],
-  "sentiment": "string",
-  "intensity": number,
-  "reasoning": "string"
-}
+const ANALYSIS_SYSTEM_PROMPT =
+  'You are an emotional-intelligence classifier. Analyze the user text and extract themes, sentiment, intensity, and whether sharing publicly would feel right.';
 
-Rules:
-- themes: array of 1–5 short topic phrases (e.g. "loss of a friendship", "work anxiety")
-- sentiment: exactly one of: grateful | hopeful | calm | heavy | vulnerable | grieving | joyful | frustrated | anxious | content
-- intensity: integer 1–5 (1 = barely noticeable, 5 = overwhelming)
-- reasoning: one sentence explaining whether sharing in a public community would feel right for this entry`;
+const ANALYSIS_SCHEMA = {
+  name: 'entry_analysis',
+  strict: true,
+  schema: {
+    type: 'object',
+    properties: {
+      themes: {
+        type: 'array',
+        items: { type: 'string' },
+        description: '1–5 short topic phrases extracted from the text',
+      },
+      sentiment: {
+        type: 'string',
+        enum: [
+          'grateful', 'hopeful', 'calm', 'heavy',
+          'vulnerable', 'grieving', 'joyful', 'frustrated', 'anxious', 'content',
+        ],
+        description: 'Dominant emotional tone',
+      },
+      intensity: {
+        type: 'integer',
+        description: '1 (barely noticeable) to 5 (overwhelming)',
+      },
+      reasoning: {
+        type: 'string',
+        description: 'One sentence on whether sharing publicly in a Hive community would feel right for this entry',
+      },
+    },
+    required: ['themes', 'sentiment', 'intensity', 'reasoning'],
+    additionalProperties: false,
+  },
+};
 
 function cosine(a: number[], b: number[]): number {
   let dot = 0, magA = 0, magB = 0;
@@ -49,41 +70,43 @@ serve(async (request) => {
       });
     }
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!anthropicKey) {
-      return new Response(JSON.stringify({ error: 'Anthropic API key not configured' }), {
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiKey) {
+      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       });
     }
 
-    // ── Step 1: Claude extracts themes / sentiment / intensity / reasoning ──
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    // ── Step 1: OpenAI extracts themes / sentiment / intensity / reasoning ──
+    const analysisRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
+        Authorization: `Bearer ${openaiKey}`,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'gpt-4o-mini',
         max_tokens: 512,
-        system: ANALYSIS_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: text }],
+        response_format: { type: 'json_schema', json_schema: ANALYSIS_SCHEMA },
+        messages: [
+          { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
+          { role: 'user', content: text },
+        ],
       }),
     });
 
-    if (!claudeRes.ok) {
-      const err = await claudeRes.text();
-      console.error('Anthropic error:', err);
+    if (!analysisRes.ok) {
+      const err = await analysisRes.text();
+      console.error('OpenAI analysis error:', err);
       return new Response(JSON.stringify({ error: 'Analysis service unavailable' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 502,
       });
     }
 
-    const claudeData = await claudeRes.json();
-    const rawJson = claudeData.content?.[0]?.text ?? '{}';
+    const analysisData = await analysisRes.json();
+    const rawJson = analysisData.choices?.[0]?.message?.content ?? '{}';
 
     let parsed: { themes?: string[]; sentiment?: string; intensity?: number; reasoning?: string };
     try {
@@ -116,8 +139,6 @@ serve(async (request) => {
 
     // ── Step 3: Embedding-based Hive matching (only if themes + topics exist) ──
     if (themes.length > 0 && topics.length > 0) {
-      const openaiKey = Deno.env.get('OPENAI_API_KEY');
-      if (openaiKey) {
         const themeQuery = themes.join(', ');
         // Batch: all topic titles first, then the theme query as the last input
         const inputs = [...topics.map((t) => t.title), themeQuery];
@@ -154,7 +175,6 @@ serve(async (request) => {
           const SIMILARITY_THRESHOLD = 0.55;
           suggestedHiveId = bestScore >= SIMILARITY_THRESHOLD ? bestId : null;
         }
-      }
     }
 
     return new Response(

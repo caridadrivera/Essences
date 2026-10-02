@@ -255,6 +255,13 @@ const userProfile = () => {
     setPostsByTopic(prev => ({ ...prev, [topicId]: posts }))
   }
 
+  const selectedHive = topics.find(topic => topic.id === selectedTopicId)
+  const selectedPosts = postsByTopic[selectedTopicId] || []
+  const storiesLoaded = Boolean(selectedTopicId && Object.prototype.hasOwnProperty.call(postsByTopic, selectedTopicId))
+  const topicCounts = Object.fromEntries(
+    topics.map(topic => [topic.id, postsByTopic[topic.id]?.length])
+  )
+
   const closeMenus = () => {
     setBottomSheetType(null);
 
@@ -304,7 +311,7 @@ const userProfile = () => {
     }
   }
   return (
-    <ScreenWrapper >
+    <ScreenWrapper bg={theme.colors.surfaceBase}>
       <View style={styles.header}>
         <View style={styles.backgroundImgContainer}>
           <Image
@@ -380,61 +387,90 @@ const userProfile = () => {
           )}
         </View>
       </View>
-      <View style={{ alignItems: 'center' }}>
-        <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-        <Text style={{ fontStyle: 'italic' }}>{bio}</Text>
-        <Text style={{ fontWeight: 'bold' }}>__________________</Text>
+      <View style={styles.profileSummary}>
+        {!!name && <Text style={styles.profileName}>{name}</Text>}
+        {!!bio?.trim() && <Text style={styles.profileBio}>{bio}</Text>}
       </View>
       <View style={styles.contentContainer}>
-        <View style={styles.topicHeader}>
+        {topics.length > 0 ? (
+          <View style={styles.topicHeader}>
           <TopicTabs
             topics={topics}
             fetchPosts={fetchPosts}
             user={user}
             initialTopicId={selectedTopicId}
             onPostsLoaded={onTopicChange}
+            onTopicSelect={setSelectedTopicId}
+            topicCounts={topicCounts}
           />
-        </View>
+          </View>
+        ) : (
+          <View style={styles.emptyHiveState}>
+            <Text style={styles.emptyHiveText}>Your Hives will appear here.</Text>
+          </View>
+        )}
 
         <View style={styles.postsWrapper}>
-          {postsByTopic[selectedTopicId] && postsByTopic[selectedTopicId].length > 0 ? (
-            <>
+          <View style={styles.storiesHeader}>
+            <View style={styles.storiesHeadingText}>
+              <Text style={styles.sectionEyebrow}>IN {selectedHive?.title?.toUpperCase() || 'YOUR HIVES'}</Text>
+              <View style={styles.storiesTitleRow}>
+                <Text style={styles.sectionTitle}>Stories</Text>
+                {storiesLoaded && <Text style={styles.storyCount}>{selectedPosts.length}</Text>}
+              </View>
+            </View>
+            {storiesLoaded && selectedPosts.length > 0 && (
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedTopic(selectedTopicId);
+                  setSelectedTopic(selectedTopicId)
                   setBottomSheetType('newPost')
                 }}
-                style={styles.addPostIconButton}
+                style={styles.writeStoryButton}
+                accessibilityRole="button"
+                accessibilityLabel={`Write a story${selectedHive ? ` in ${selectedHive.title}` : ''}`}
               >
-                <Icon name='plusIcon' />
+                <Icon name="plusIcon" size={17} color={theme.colors.surfaceRaised} />
+                <Text style={styles.writeStoryText}>Write story</Text>
               </TouchableOpacity>
+            )}
+          </View>
 
-                 <FlatList
-              data={postsByTopic[selectedTopicId]}
-              keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-              renderItem={({ item }) => (
-                <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />
-              )}
+          {topics.length === 0 ? (
+            <View style={styles.emptyStoriesState}>
+              <Text style={styles.emptyStoriesTitle}>Your story space is ready</Text>
+              <Text style={styles.emptyStoriesCopy}>Choose or join a Hive to start collecting stories here.</Text>
+            </View>
+          ) : storiesLoaded && selectedPosts.length > 0 ? (
+            <FlatList
+              data={selectedPosts}
+              keyExtractor={(item) => item.id?.toString()}
+              renderItem={({ item }) => <PostCard item={item} setIsPostDeleted={setIsPostDeleted} />}
+              contentContainerStyle={styles.storyListContent}
+              showsVerticalScrollIndicator={false}
             />
-            
-            </>
-         
-          ) : (
-
-            <>
+          ) : storiesLoaded ? (
+            <View style={styles.emptyStoriesState}>
+              <View style={styles.emptyStoryMark}>
+                <Icon name="hexResonate" size={24} active />
+              </View>
+              <Text style={styles.emptyStoriesTitle}>No stories in this Hive yet</Text>
+              <Text style={styles.emptyStoriesCopy}>Start the conversation with a story of your own.</Text>
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedTopic(selectedTopicId);
+                  setSelectedTopic(selectedTopicId)
                   setBottomSheetType('newPost')
                 }}
-                style={styles.addPostIconButton}
+                style={styles.emptyWriteButton}
+                accessibilityRole="button"
               >
-                <Icon name='plusIcon' />
+                <Text style={styles.emptyWriteText}>Write the first story</Text>
               </TouchableOpacity>
-              <Text style={styles.noPosts}>Hmm... you don't have any posts for this topic - yet! </Text>
-
-
-            </>)}
+            </View>
+          ) : (
+            <View style={styles.loadingStoriesState}>
+              <Loading />
+            </View>
+          )}
         </View>
       </View>
       {bottomSheetType && (
@@ -494,6 +530,27 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     marginTop: -140
   },
+  profileSummary: {
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: theme.colors.surfaceBase,
+  },
+  profileName: {
+    color: theme.colors.inkPrimary,
+    fontFamily: theme.fonts.display,
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  profileBio: {
+    maxWidth: 340,
+    marginTop: 6,
+    color: theme.colors.inkSecondary,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
   editIcon: {
     position: 'absolute',
     botton: 0,
@@ -512,7 +569,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 18,
-
+    backgroundColor: theme.colors.surfaceBase,
   },
   menu: {
     position: 'absolute',
@@ -576,35 +633,149 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 16,
-    marginTop: 16
+    minHeight: 0,
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    backgroundColor: theme.colors.surfaceBase,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  sectionEyebrow: {
+    color: theme.colors.rust,
+    fontSize: 10,
+    fontWeight: theme.fonts.bold,
+    letterSpacing: 1,
+  },
+  sectionTitle: {
+    marginTop: 2,
+    color: theme.colors.inkPrimary,
+    fontFamily: theme.fonts.display,
+    fontSize: 21,
+  },
+  sectionMeta: {
+    marginBottom: 3,
+    color: theme.colors.inkSecondary,
+    fontSize: 12,
   },
   topicHeader: {
+    marginHorizontal: -18,
+    paddingHorizontal: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.hairline,
+  },
+  emptyHiveState: {
+    minHeight: 52,
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.hairline,
+  },
+  emptyHiveText: {
+    color: theme.colors.inkSecondary,
+    fontSize: 13,
+  },
+  postsWrapper: {
+    flex: 1,
+    minHeight: 0,
+  },
+  storiesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12
+    gap: 12,
+    paddingTop: 14,
+    paddingBottom: 8,
   },
-  addPostIconButton: {
-    padding: 12,
-    marginVertical: 12,
-    backgroundColor: 'theme.colors.primaryDark',
-    color: '#fff',
-    borderRadius: 8,
-    justifyContent: 'center',
+  storiesHeadingText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  storiesTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    width: 44,
-    height: 44,
-    alignSelf: 'center'
+    gap: 8,
   },
-  postsWrapper: {
-    marginTop: 12,
-    flex: 1
-  },
-  noPosts: {
-    fontSize: 16,
+  storyCount: {
+    minWidth: 22,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    overflow: 'hidden',
+    borderRadius: theme.designRadius.full,
+    backgroundColor: theme.colors.peach,
+    color: theme.colors.inkPrimary,
+    fontSize: 11,
+    fontWeight: theme.fonts.semibold,
     textAlign: 'center',
-    color: theme.colors.text,
-    marginTop: 20
-  }
+  },
+  writeStoryButton: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 13,
+    borderRadius: theme.designRadius.full,
+    backgroundColor: theme.colors.rust,
+  },
+  writeStoryText: {
+    color: theme.colors.surfaceRaised,
+    fontSize: 12,
+    fontWeight: theme.fonts.semibold,
+  },
+  storyListContent: {
+    paddingTop: 2,
+    paddingBottom: 20,
+  },
+  emptyStoriesState: {
+    flex: 1,
+    minHeight: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    paddingBottom: 24,
+  },
+  emptyStoryMark: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    borderRadius: theme.designRadius.full,
+    backgroundColor: theme.colors.sage,
+  },
+  emptyStoriesTitle: {
+    color: theme.colors.inkPrimary,
+    fontFamily: theme.fonts.display,
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  emptyStoriesCopy: {
+    marginTop: 5,
+    color: theme.colors.inkSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  emptyWriteButton: {
+    marginTop: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    borderRadius: theme.designRadius.full,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+  },
+  emptyWriteText: {
+    color: theme.colors.inkPrimary,
+    fontSize: 12,
+    fontWeight: theme.fonts.semibold,
+  },
+  loadingStoriesState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 })

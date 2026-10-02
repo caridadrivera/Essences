@@ -4,10 +4,13 @@ import Icon from '../assets/icons'
 import { theme } from '../constants/theme'
 import { router } from 'expo-router'
 
-const BackButton = ({size=26, router}) => {
+const BackButton = ({ size = 26, router, fallbackRoute = '/' }) => {
   return (
 
-    <Pressable onPress={()=> router.back()} style={styles.button}>
+    <Pressable
+      onPress={() => router.canGoBack() ? router.back() : router.replace(fallbackRoute)}
+      style={styles.button}
+    >
       <Icon name="arrowLeft"   strokeWidth={2.5} size={size} color={theme.colors.text} />
     </Pressable>
   )

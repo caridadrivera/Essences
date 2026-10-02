@@ -40,7 +40,11 @@ export const NotificationProvider = ({ children }) => {
       .subscribe((status, error) => {
         if (status === 'SUBSCRIBED') loadUnreadCount()
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('Notification realtime channel failed:', error)
+          console.error('Notification realtime channel failed:', {
+            status,
+            error: error?.message || error || 'No error detail supplied by Realtime',
+            channelState: notificationsChannel.state,
+          })
         }
       })
 

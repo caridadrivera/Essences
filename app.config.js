@@ -18,8 +18,6 @@ export default {
     ...appJson.expo.extra,
     SUPABASE_URL: getEnv('SUPABASE_URL'),
     SUPABASE_ANON_KEY: getEnv('SUPABASE_ANON_KEY'),
-    OPENAI_API_KEY: getEnv('OPENAI_API_KEY'),
-    ANTHROPIC_API_KEY: getEnv('ANTHROPIC_API_KEY'),
   },
 };
 

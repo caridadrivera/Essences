@@ -21,7 +21,7 @@
       }
     },
     "android": {
-      "package": "com.caridadrivera.essences",
+      "package": "com.essencesapp.essences",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"

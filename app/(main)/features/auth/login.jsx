@@ -54,7 +54,7 @@ const Login = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
-                <BackButton router={router} />
+                <BackButton router={router} fallbackRoute="/features/auth/sign-up" />
 
                 <View>
                   <Image source={iconImg} style={{ height: 180, width: "100%" }} />

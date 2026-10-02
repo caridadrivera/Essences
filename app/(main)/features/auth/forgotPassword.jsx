@@ -39,7 +39,7 @@ const ForgotPassword = () => {
   return (
 
     <ScreenWrapper>
-       <BackButton router={router}/>
+      <BackButton router={router} fallbackRoute="/features/auth/login" />
       <View style={styles.container}>
         <Text style={styles.title}>Forgot Password</Text>
         <TextInput
