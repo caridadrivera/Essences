@@ -1,6 +1,7 @@
 import { View, StyleSheet, Text, Pressable, Modal, Alert, ScrollView, Button,   KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState, useRef } from 'react'
 import ScreenWrapper from '../../../../components/ScreenWrapper'
+import BrandLogo from '../../../../components/BrandLogo'
 import { StatusBar } from 'expo-status-bar'
 import { hp, wp } from '../../../../helpers/common'
 import { theme } from '../../../../constants/theme'
@@ -11,8 +12,6 @@ import Input from '../../../../components/Input'
 import Icon from '../../../../assets/icons'
 import { useRouter } from 'expo-router'
 import { supabase } from '../../../../lib/supabase'
-import { getUserImage } from '../../../../services/userProfileImage'
-import { Image } from 'expo-image'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const SignUp = () => {
@@ -79,9 +78,6 @@ const SignUp = () => {
 
 
 
-  let iconImg = getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z')
-
-
   return (
     <ScreenWrapper bg="white">
       <StatusBar style="dark" />
@@ -94,7 +90,7 @@ const SignUp = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
         <View style={{ gap: 8 }}>
-          <Image source={iconImg} style={{ height: 208, width: "100%" }} />
+          <BrandLogo />
           <Text style={styles.punchline}> Your voice. Your story. Your essence.</Text>
         </View>
         <View style={styles.form}>
@@ -128,7 +124,8 @@ const SignUp = () => {
           onPress={handleSubmit}
           loading={loading}
           title="Get Started"
-          buttonStyle={{ marginHorizontal: wp(3) }}
+          buttonStyle={styles.authButton}
+          textStyle={styles.authButtonText}
         />
 
 
@@ -229,10 +226,18 @@ const SignUp = () => {
 export default SignUp
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: 32,
+  },
   container: {
     flex: 1,
-    gap: 38,
-    paddingHorizontal: wp(4)
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    gap: 36,
+    paddingHorizontal: wp(5),
   },
   welcomeImage: {
     height: hp(30),
@@ -247,20 +252,21 @@ const styles = StyleSheet.create({
   },
   punchline: {
     textAlign: 'center',
-    paddingHorizontal: wp(10),
+    paddingHorizontal: wp(6),
+    marginTop: 8,
     fontSize: hp(1.7),
     color: theme.colors.text
   },
   footer: {
-    gap: 38,
-    width: "80%"
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 4,
   },
   buttonTextContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 5,
-    paddingLeft: wp(18)
   },
   loginText: {
     textAlign: 'center',
@@ -268,8 +274,16 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6)
   },
   form: {
-    gap: 18,
-    paddingTop: wp(8),
+    width: '100%',
+    gap: 20,
+  },
+  authButton: {
+    width: '78%',
+    height: hp(5.8),
+    alignSelf: 'center',
+  },
+  authButtonText: {
+    fontSize: hp(1.9),
   },
   centeredView: {
     flex: 1,

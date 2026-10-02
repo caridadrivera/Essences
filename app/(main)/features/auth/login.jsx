@@ -8,13 +8,12 @@ import Icon from '../../../../assets/icons';
 import { theme } from '../../../../constants/theme';
 import { StatusBar } from 'expo-status-bar';
 import BackButton from '../../../../components/BackButton';
+import BrandLogo from '../../../../components/BrandLogo';
 import { useRouter } from 'expo-router';
 import { wp, hp } from '../../../../helpers/common';
 import Input from '../../../../components/Input';
 import ButtonComponent from '../../../../components/Button';
 import { supabase } from '../../../../lib/supabase';
-import { getUserImage } from '../../../../services/userProfileImage';
-import { Image } from 'expo-image';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
@@ -23,8 +22,6 @@ const Login = () => {
   const emailRef = useRef("");
   const passwordRef = useRef("");
   const [loading, setLoading] = useState(false);
-
-  let iconImg = getUserImage('Essences.png?t=2024-09-14T02%3A13%3A17.961Z');
 
   const onSubmit = async () => {
     if (!emailRef.current || !passwordRef.current) {
@@ -56,8 +53,8 @@ const Login = () => {
           <View style={styles.container}>
                 <BackButton router={router} fallbackRoute="/features/auth/sign-up" />
 
-                <View>
-                  <Image source={iconImg} style={{ height: 180, width: "100%" }} />
+                <View style={styles.logoBlock}>
+                  <BrandLogo />
                 </View>
 
                 <View>
@@ -92,7 +89,13 @@ const Login = () => {
                   <Text> Forgot Password </Text>
                 </Pressable>
 
-                <ButtonComponent title={'Login'} loading={loading} onPress={onSubmit} />
+                <ButtonComponent
+                  title="Login"
+                  loading={loading}
+                  onPress={onSubmit}
+                  buttonStyle={styles.authButton}
+                  textStyle={styles.authButtonText}
+                />
 
                 {/* Footer */}
                 <View style={styles.footer}>
@@ -118,16 +121,32 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    gap: 35,
-    paddingHorizontal: wp(5)
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    gap: 30,
+    paddingHorizontal: wp(5),
+  },
+  logoBlock: {
+    marginBottom: 18,
   },
   welcomeText: {
-    fontSize: hp(4),
+    fontSize: hp(2),
     fontWeight: theme.fonts.bold,
-    color: theme.colors.text
+    color: theme.colors.text,
+    textAlign: 'left',
   },
   form: {
+    width: '100%',
     gap: 20,
+  },
+  authButton: {
+    width: '78%',
+    height: hp(5.8),
+    alignSelf: 'center',
+  },
+  authButtonText: {
+    fontSize: hp(1.9),
   },
   forgotPassword: {
     marginVertical: 10,
