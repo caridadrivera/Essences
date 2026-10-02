@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { theme } from '../../../../constants/theme'
 import { supabase } from '../../../../lib/supabase'
 import Avatar from '../../../../components/Avatar'
+import BackButton from '../../../../components/BackButton'
 import { router, useLocalSearchParams } from 'expo-router'
 import { ScrollView } from 'react-native'
 import Icon from '../../../../assets/icons'
@@ -320,9 +321,7 @@ const userProfile = () => {
               height: 228,
               width: "100%"
             }} />
-          <Pressable onPress={() => router.back()}>
-            <Icon name="arrowLeft" />
-          </Pressable>
+          <BackButton router={router} fallbackRoute="/features/screens/home" />
         </View>
 
         <View style={styles.profilePicContainer}>

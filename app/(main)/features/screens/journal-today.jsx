@@ -5,6 +5,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper'
 import { useAuth } from '../../../../context/AuthContext'
 import { theme } from '../../../../constants/theme'
 import { fetchJournalEntries } from '../../../../services/journalService'
+import BackButton from '../../../../components/BackButton'
 
 const JournalToday = () => {
   const router = useRouter()
@@ -36,9 +37,7 @@ const JournalToday = () => {
     <ScreenWrapper bg={theme.colors.surfaceBase}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
+          <BackButton router={router} fallbackRoute="/features/screens/home" />
           <Text style={styles.title}>Private Journal</Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -68,8 +67,6 @@ export default JournalToday
 const styles = StyleSheet.create({
   container: { padding: 20, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  backButton: { paddingVertical: 8, paddingRight: 12 },
-  backText: { color: theme.colors.inkSecondary, fontSize: 15 },
   headerSpacer: { width: 45 },
   title: { color: theme.colors.inkPrimary, fontFamily: theme.fonts.display, fontSize: 24 },
   subtitle: { color: theme.colors.inkSecondary, marginBottom: 20 },

@@ -226,35 +226,34 @@ const EditProfile = () => {
                 <View style={styles.backgroundImgContainer}>
                     <Image
                         source={backgroundImgSrc}
-                        style={{ height: 228, width: "100%" }}
+                        style={styles.coverImage}
                     />
-                    <View>
-                    <Pressable onPress={() => { router.back() }}>
-                        <Icon name="arrowLeft" />
+                    <View style={styles.coverActions}>
+                    <BackButton router={router} fallbackRoute="/features/screens/user-profile" />
+                    <Pressable
+                        style={styles.changeCoverButton}
+                        onPress={pickBackgroundImage}
+                        accessibilityRole="button"
+                        accessibilityLabel="Change cover photo"
+                    >
+                        <Icon name="uploadImageIcon" size={18} color={theme.colors.inkPrimary} />
+                        <Text style={styles.imageActionText}>Change cover</Text>
                     </Pressable>
                     </View>
-                    <Pressable
-                        style={[styles.iconContainer, { top: 10, right: 10 }]}
-                        onPress={pickBackgroundImage}>
-                        <Icon name="uploadImageIcon" />
-                    </Pressable>
                 </View>
 
                 <View style={styles.profilePicContainer}>
                     <Image
                         source={profileImgSrc}
                         style={styles.profilePic} />
-                    <Pressable style={styles.editIcon}
-                        onPress={pickProfileImage}>
-                        <Icon name="uploadImageIcon" />
+                    <Pressable
+                        style={styles.changeAvatarButton}
+                        onPress={pickProfileImage}
+                        accessibilityRole="button"
+                        accessibilityLabel="Change profile photo"
+                    >
+                        <Icon name="uploadImageIcon" size={18} color={theme.colors.surfaceRaised} />
                     </Pressable>
-                    <View>
-                        <Pressable
-                            style={styles.iconButton}
-                            onPress={() => setModalVisible(true)}>
-                            <Icon name="deleteIcon" />
-                        </Pressable>
-                    </View>
                 </View>
             </View>
             {/* form */}
@@ -271,6 +270,21 @@ const EditProfile = () => {
                     containerStyle={styles.bio}
                     onChangeText={value => setUser({ ...user, bio: value })} />
                 <ButtonComponent title="Update" loading={loading} onPress={onSubmit} />
+
+                <View style={styles.dangerZone}>
+                    <View style={styles.dangerCopy}>
+                        <Text style={styles.dangerTitle}>Delete account</Text>
+                        <Text style={styles.dangerDescription}>Permanently remove your profile, photos, and posts.</Text>
+                    </View>
+                    <Pressable
+                        style={styles.deleteAccountButton}
+                        onPress={() => setModalVisible(true)}
+                        accessibilityRole="button"
+                    >
+                        <Icon name="deleteIcon" size={18} color={theme.colors.dangerWarm} />
+                        <Text style={styles.deleteAccountText}>Delete</Text>
+                    </Pressable>
+                </View>
 
                 <Modal
                     visible={modalVisible}
@@ -324,7 +338,49 @@ export default EditProfile
 
 const styles = StyleSheet.create({
     backgroundImgContainer: {
-        width: '100%', // Required for absolute positioning to work
+        position: 'relative',
+        width: '100%',
+        height: 228,
+    },
+    coverImage: {
+        width: '100%',
+        height: '100%',
+    },
+    coverActions: {
+        position: 'absolute',
+        top: 12,
+        left: 16,
+        right: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    imageActionIcon: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: theme.designRadius.full,
+        backgroundColor: theme.colors.surfaceRaised,
+        borderWidth: 1,
+        borderColor: theme.colors.hairline,
+    },
+    changeCoverButton: {
+        minHeight: 40,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 7,
+        paddingHorizontal: 13,
+        borderRadius: theme.designRadius.full,
+        backgroundColor: theme.colors.surfaceRaised,
+        borderWidth: 1,
+        borderColor: theme.colors.hairline,
+    },
+    imageActionText: {
+        color: theme.colors.inkPrimary,
+        fontSize: 12,
+        fontWeight: theme.fonts.semibold,
     },
     welcomeText: {
         fontSize: hp(4),
@@ -356,28 +412,32 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     profilePicContainer: {
-        flex: 1,
-        alignItems: 'center'
+        width: '100%',
+        height: 104,
+        alignItems: 'center',
+        marginTop: -52,
+        zIndex: 1,
     },
     profilePic: {
-        height: 155,
-        width: 155,
-        borderRadius: 999,
-        borderBlockColor: theme.colors.primaryDark,
-        borderWidth: 2,
-        marginTop: -140
+        height: 104,
+        width: 104,
+        borderRadius: theme.designRadius.full,
+        borderColor: theme.colors.surfaceBase,
+        borderWidth: 4,
     },
-    editIcon: {
+    changeAvatarButton: {
         position: 'absolute',
-        botton: 0,
-        padding: 7,
-        borderRadius: 50,
-        backgroundColor: 'white',
-        shadowColor: theme.colors.textLight,
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.4,
-        shadowRadius: 5,
-        elevation: 7
+        bottom: 0,
+        left: '50%',
+        width: 36,
+        height: 36,
+        marginLeft: 26,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: theme.designRadius.full,
+        backgroundColor: theme.colors.rust,
+        borderWidth: 2,
+        borderColor: theme.colors.surfaceBase,
     },
 
     header: {
@@ -407,9 +467,48 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         paddingVertical: 15
     },
-    iconButton: {
-        left: 180,
-        top: -35
+    dangerZone: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        marginTop: 8,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(154, 51, 36, 0.24)',
+        borderRadius: theme.designRadius.md,
+        backgroundColor: 'rgba(154, 51, 36, 0.05)',
+    },
+    dangerCopy: {
+        flex: 1,
+    },
+    dangerTitle: {
+        color: theme.colors.dangerWarm,
+        fontSize: 14,
+        fontWeight: theme.fonts.semibold,
+    },
+    dangerDescription: {
+        marginTop: 3,
+        color: theme.colors.inkSecondary,
+        fontSize: 12,
+        lineHeight: 17,
+    },
+    deleteAccountButton: {
+        minHeight: 38,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 5,
+        paddingHorizontal: 10,
+        borderRadius: theme.designRadius.sm,
+        backgroundColor: theme.colors.surfaceRaised,
+        borderWidth: 1,
+        borderColor: 'rgba(154, 51, 36, 0.3)',
+    },
+    deleteAccountText: {
+        color: theme.colors.dangerWarm,
+        fontSize: 12,
+        fontWeight: theme.fonts.semibold,
     },
     centeredView: {
         flex: 1,

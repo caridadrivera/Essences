@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router'
 import Icon from '../../../../assets/icons'
 import { supabase } from '../../../../lib/supabase'
 import { useNotification } from '../../../../context/NotificationContext'
+import BackButton from '../../../../components/BackButton'
 
 
 const Notifications = () => {
@@ -52,9 +53,7 @@ const Notifications = () => {
   return (
     <ScreenWrapper>
 
-      <TouchableOpacity style={styles.relateButton} onPress={() => { router.back() }}>
-        <Icon name="arrowLeft"></Icon>
-      </TouchableOpacity>
+      <BackButton router={router} fallbackRoute="/features/screens/home" />
       <View style={{ alignItems: 'center' }}>
         <Text >Notifications</Text>
       </View>

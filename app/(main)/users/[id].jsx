@@ -14,6 +14,7 @@ import Loading from '../../../components/Loading'
 import Icon from '../../../assets/icons'
 import { Alert } from 'react-native'
 import { err } from 'react-native-svg'
+import BackButton from '../../../components/BackButton'
 
 const Profile = () => {
   const [allPosts, setAllPosts] = useState([]);
@@ -134,9 +135,7 @@ const Profile = () => {
               height: 228,
               width: "100%"
             }} />
-            <Pressable  onPress={()=> router.replace('/features/screens/home')}>
-                <Icon name="arrowLeft" />
-            </Pressable>
+            <BackButton router={router} onPress={() => router.replace('/features/screens/home')} />
         </View>
         <View style={styles.profilePicContainer}>
           <Avatar

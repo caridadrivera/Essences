@@ -13,6 +13,7 @@ import { createOrUpdatePost } from '../../../services/postService';
 import { getUserData } from '../../../services/userService';
 import { canPostContent } from '../../../services/moderationService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import BackButton from '../../../components/BackButton';
 
 
 
@@ -148,9 +149,7 @@ const PostsByTopic = () => {
   return (
     <ScreenWrapper bg="white">
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Icon name="arrowLeft" />
-        </Pressable>
+        <BackButton router={router} fallbackRoute="/features/screens/hives" />
         <Text style={styles.headerTitle}>{title}</Text>
         <TouchableOpacity onPress={() => setBottomSheetType('topic')}>
           <Text style={{ fontSize: 20, color: '#999' }}>⋯</Text>

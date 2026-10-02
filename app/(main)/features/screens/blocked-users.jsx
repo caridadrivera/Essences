@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router'
 import Icon from '../../../../assets/icons'
 import { supabase } from '../../../../lib/supabase'
 import BlockedUserItem from '../../../../components/BlockedUserItem'
+import BackButton from '../../../../components/BackButton'
 
 
 const blockedUsers = () => {
@@ -56,9 +57,7 @@ const blockedUsers = () => {
 
   return (
     <ScreenWrapper>
-      <TouchableOpacity style={styles.relateButton} onPress={() => { router.back() }}>
-        <Icon name="arrowLeft"></Icon>
-      </TouchableOpacity>
+      <BackButton router={router} fallbackRoute="/features/screens/home" />
       <View style={{ alignItems: 'center' }}>
         <Text>Blocked Users</Text>
       </View>
